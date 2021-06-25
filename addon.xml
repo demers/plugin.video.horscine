@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.horscine" name="HorsCiné" provider-name="fndemers" version="0.0.1">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0"/>
+        <import addon="script.module.codequick" version="1.0.2"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="addon.py">
+        <provides>audio video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en_GB">Hors Cine Videos.</summary>
+        <summary lang="fr_CA">Vidéos Hors Ciné.</summary>
+        <description lang="en_GB">Kodi plugin to play videos on Hors Cine</description>
+        <description lang="fr_CA">Module Kodi plugin pour consulter les vidéos sur Hors Ciné</description>
+        <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
+        <source>https://github.com/fndemers/plugin.video.horscine</source>
+        <website>http://horscine.org</website>
+        <email>fndemers@gmail.com</email>
+        <platform>all</platform>
+        <language>fr</language>
+        <assets>
+            <icon>resources/icon.jpg</icon>
+        </assets>
+        <news>Première installation.</news>
+        <reuselanguageinvoker>true</reuselanguageinvoker>
+    </extension>
+</addon>
