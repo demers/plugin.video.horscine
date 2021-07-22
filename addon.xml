@@ -1,17 +1,20 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.horscine" name="HorsCiné" provider-name="fndemers" version="0.0.1">
-    <requires>
-        <import addon="xbmc.python" version="3.0.0"/>
-        <import addon="script.module.codequick" version="1.0.2"/>
-    </requires>
-    <extension point="xbmc.python.pluginsource" library="addon.py">
-        <provides>audio video</provides>
-    </extension>
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.video.horscine" name="HorsCiné" provider-name="fndemers" version="0.0.1" name="Hors Ciné">
+<requires>
+  <import addon="xbmc.python" version="3.0.0"/>
+  <import addon="script.module.routing" version="0.2.0"/>
+  <import addon="script.module.beautifulsoup4" version="4.9.3"/>
+  <import addon="plugin.video.vimeo" version="6.0.0"/>
+  <import addon="plugin.video.youtube" version="6.8.15"/>
+</requires>
+<extension point="xbmc.python.pluginsource" library="main.py">
+  <provides>video</provides>
+</extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="en_GB">Hors Cine Videos.</summary>
         <summary lang="fr_CA">Vidéos Hors Ciné.</summary>
-        <description lang="en_GB">Kodi plugin to play videos on Hors Cine</description>
+        <summary lang="en_GB">Hors Cine Videos.</summary>
         <description lang="fr_CA">Module Kodi plugin pour consulter les vidéos sur Hors Ciné</description>
+        <description lang="en_GB">Kodi plugin to play videos on Hors Cine</description>
         <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
         <source>https://github.com/fndemers/plugin.video.horscine</source>
         <website>http://horscine.org</website>
@@ -19,9 +22,10 @@
         <platform>all</platform>
         <language>fr</language>
         <assets>
-            <icon>resources/icon.jpg</icon>
+            <icon>icon.png</icon>
+            <fanart>fanart.png</fanart>
         </assets>
-        <news>Première installation.</news>
+        <news>Première version!</news>
         <reuselanguageinvoker>true</reuselanguageinvoker>
     </extension>
 </addon>
