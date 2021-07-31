@@ -53,21 +53,24 @@ VIDEOS = {'Le film de la semaine': [{'name': "L'homme de la rue",
                       'genre': 'Food'}
                      ]}
 
-# def get_categories():
-    # """
-    # Get the list of video categories.
+def get_categories_init():
+    """
+    Get the list of video categories.
 
-    # Here you can insert some parsing code that retrieves
-    # the list of video categories (e.g. 'Movies', 'TV-shows', 'Documentaries' etc.)
-    # from some site or API.
+    Here you can insert some parsing code that retrieves
+    the list of video categories (e.g. 'Movies', 'TV-shows', 'Documentaries' etc.)
+    from some site or API.
 
-    # .. note:: Consider using `generator functions <https://wiki.python.org/moin/Generators>`_
-        # instead of returning lists.
+    .. note:: Consider using `generator functions <https://wiki.python.org/moin/Generators>`_
+        instead of returning lists.
 
-    # :return: The list of video categories
-    # :rtype: types.GeneratorType
-    # """
-    # return VIDEOS.keys()
+    :return: The list of video categories
+    :rtype: types.GeneratorType
+    """
+    return VIDEOS.keys()
+
+def strip_all(chaine):
+    return chaine.replace('\t', '').replace('\n', '').strip(' ')
 
 def get_categories():
     """
@@ -87,14 +90,14 @@ def get_categories():
     url_content= urllib.request.urlopen(URL_ADRESSE).read()
 
     liste_soup = BeautifulSoup(url_content, 'html.parser')
-    job_section_elements = liste_soup.find_all("section")
+    job_section_elements = liste_soup.find_all("section", class_="elementor-section")
     for job_section_element in job_section_elements:
         # job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
         # if len(job_a_elements) > 1:
         # print(list(job_section_element.find("a", class_="elementor-post__thumbnail__link")))
         if len(job_section_element.find_all("a", class_="elementor-post__thumbnail__link")) > 1:
             title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
-            yield title_element.text
+            yield strip_all(title_element.text)
 
 
     # for job_element in job_elements:
@@ -109,6 +112,9 @@ def get_categories():
     # else:
         # src = ''
         # reponse = False
+
+def get_videos_init(category):
+    return VIDEOS[category]
 
 def get_videos(category):
     """
@@ -131,28 +137,31 @@ def get_videos(category):
 
     list_videos_group = []
     if category in get_categories():
-        job_section_elements = liste_soup.find_all("section")
+        job_section_elements = liste_soup.find_all("section", class_="elementor-section")
         for job_section_element in job_section_elements:
             # job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
+            job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
+            job_section_souselement = job_section_element.find("section", class_="elementor-section")
             # Vérifier si une vidéo est présentée dans cette section...
-            if len(job_section_element.find_all("a", class_="elementor-post__thumbnail__link")) > 1:
+            # if len(job_section_element.find_all("a", class_="elementor-post__thumbnail__link")) > 1:
             # if len(job_a_elements) > 1:
+            if job_a_element and not job_section_souselement:
                 title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
-                if title_element.text == category:
+                if title_element and strip_all(title_element.text) == category:
                     job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
                     for job_a_element in job_a_elements:
-                        video_group_element = dict()
-                        video_group_element['name'] = 'test'
-                        video_group_element['thumb'] = job_a_element.text
-                        video_group_element['video'] = 'test'
-                        video_group_element['genre'] = 'test'
-                        list_videos_group.append(video_group_element)
+                        image_element  = job_a_element.find("img")
+                        if image_element:
+                            video_group_element = dict()
+                            video_group_element['name'] = category
+                            video_group_element['thumb'] = image_element['src']
+                            video_group_element['video'] = job_a_element['href']
+                            video_group_element['genre'] = 'Film'
+                            yield video_group_element
 
-        yield list_videos_group
     else:
         return
         yield
-    # return VIDEOS[category]
 
 def convert_video_path(path_video):
     """
