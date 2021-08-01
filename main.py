@@ -67,6 +67,7 @@ def index():
         # 'mediatype' is needed for a skin to display info for this ListItem correctly.
         list_item.setInfo('video', {'title': category,
                                     'genre': category,
+                                    'plot': category,
                                     'mediatype': 'video'})
         # Create a URL for a plugin recursive call.
         # Example: plugin://plugin.video.example/?action=listing&category=Animals
@@ -111,6 +112,7 @@ def search():
 
         list_item.setInfo('video', {'title': result_item['name'],
                                     'genre': result_item['genre'],
+                                    'plot': result_item['description'],
                                     'mediatype': 'video'})
         # Set graphics (thumbnail, fanart, banner, poster, landscape etc.) for the list item.
         # Here we use the same image for all items for simplicity's sake.
@@ -158,6 +160,7 @@ def show_category(category_number):
         # 'mediatype' is needed for skin to display info for this ListItem correctly.
         list_item.setInfo('video', {'title': video['name'],
                                     'genre': video['genre'],
+                                    'plot': video['description'],
                                     'mediatype': 'video'})
         # Set graphics (thumbnail, fanart, banner, poster, landscape etc.) for the list item.
         # Here we use the same image for all items for simplicity's sake.
