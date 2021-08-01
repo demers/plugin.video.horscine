@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Free sample videos are provided by horscine.org
 # Here we use a fixed set of properties simply for demonstrating purposes
-# In a "real life" plugin you will need to get info and links to video files/streams
+# In a "real life" plugin you will need to get info and links to video
+# files/streams
 # from some web-site or online service.
 
 # Import librairies to manage urls
@@ -60,8 +61,10 @@ VIDEOS = {'Le film de la semaine': [{'name': "L'homme de la rue",
                       'description': 'Voici ma description.'}
                      ]}
 
+
 def get_categories_init():
     """
+    À enlever...
     Get the list of video categories.
 
     Here you can insert some parsing code that retrieves
@@ -76,8 +79,15 @@ def get_categories_init():
     """
     return VIDEOS.keys()
 
+
 def strip_all(chaine):
-    return chaine.replace('\t', '').replace('\n', '').strip(' ')
+    """
+    Remove non-visible char beginning and end of string.
+    Remove carriage return also.
+    Remove spaces char beginning and end of string.
+    """
+    return chaine.replace('\t', '').replace('\n', '').replace('\r', '').strip(' ')
+
 
 def get_categories():
     """
@@ -118,6 +128,7 @@ def get_categories():
         # reponse = False
 
 def get_videos_init(category):
+    "à enlever"
     return VIDEOS[category]
 
 def get_videos(category):
@@ -143,14 +154,14 @@ def get_videos(category):
     if category in get_categories():
         job_section_elements = liste_soup.find_all("section", class_="elementor-section")
         for job_section_element in job_section_elements:
-            # job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
+            # Vérifier si un lien URL est présent dans cette section...
             job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
+            # Vérifier si une "sous-section" est présente dans la section...
             job_section_souselement = job_section_element.find("section", class_="elementor-section")
-            # Vérifier si une vidéo est présentée dans cette section...
-            # if len(job_section_element.find_all("a", class_="elementor-post__thumbnail__link")) > 1:
-            # if len(job_a_elements) > 1:
+            # Vérifier si une vidéo est présente et s'il n'y a pas de "sous-section"...
             if job_a_element and not job_section_souselement:
                 title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
+                # Vérifier le titre de la section est bien "category"...
                 if title_element and strip_all(title_element.text) == category:
                     job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
                     for job_a_element in job_a_elements:
