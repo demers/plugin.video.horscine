@@ -88,8 +88,7 @@ def strip_all(chaine):
     """
     return chaine.replace('\t', '').replace('\n', '').replace('\r', '').strip(' ')
 
-
-def get_categories():
+def get_categories(content_bs=None):
     """
     Get the list of video categories.
 
@@ -104,9 +103,12 @@ def get_categories():
     :rtype: types.GeneratorType
     """
 
-    url_content= urllib.request.urlopen(URL_ADRESSE).read()
+    if not content_bs:
+        url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        liste_soup = BeautifulSoup(url_content, 'html.parser')
+    else:
+        liste_soup = content_bs
 
-    liste_soup = BeautifulSoup(url_content, 'html.parser')
     job_section_elements = liste_soup.find_all("section", class_="elementor-section")
     for job_section_element in job_section_elements:
         # job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
@@ -126,6 +128,18 @@ def get_categories():
     # else:
         # src = ''
         # reponse = False
+
+def get_video_name_from_site(content_bs):
+    return 'À venir'
+
+def get_video_url_from_site(content_bs):
+    return 'URL'
+
+def get_video_genre_from_site(content_bs):
+    return 'Film'
+
+def get_video_description_from_site(content_bs):
+    return 'À venir'
 
 def get_videos_init(category):
     "à enlever"
@@ -147,11 +161,10 @@ def get_videos(category):
     :rtype: list
     """
     url_content= urllib.request.urlopen(URL_ADRESSE).read()
-
     liste_soup = BeautifulSoup(url_content, 'html.parser')
 
     list_videos_group = []
-    if category in get_categories():
+    if category in get_categories(liste_soup):
         job_section_elements = liste_soup.find_all("section", class_="elementor-section")
         for job_section_element in job_section_elements:
             # Vérifier si un lien URL est présent dans cette section...
@@ -167,12 +180,22 @@ def get_videos(category):
                     for job_a_element in job_a_elements:
                         image_element  = job_a_element.find("img")
                         if image_element:
+
+                            # On récupère le contenu de la page de la vidéo...
+                            url_content= urllib.request.urlopen(job_a_element['href']).read()
+                            content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
+
+                            video_name = get_video_name_from_site(content_site_video_bs)
+                            video_url = get_video_url_from_site(content_site_video_bs)
+                            video_genre = get_video_genre_from_site(content_site_video_bs)
+                            video_description = get_video_description_from_site(content_site_video_bs)
+
                             video_group_element = dict()
-                            video_group_element['name'] = category
+                            video_group_element['name'] = video_name
                             video_group_element['thumb'] = image_element['src']
-                            video_group_element['video'] = job_a_element['href']
-                            video_group_element['genre'] = 'Film'
-                            video_group_element['description'] = 'À venir'
+                            video_group_element['video'] = video_url
+                            video_group_element['genre'] = video_genre
+                            video_group_element['description'] = video_description
                             yield video_group_element
 
     else:
