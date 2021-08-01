@@ -111,10 +111,10 @@ def get_categories(content_bs=None):
 
     job_section_elements = liste_soup.find_all("section", class_="elementor-section")
     for job_section_element in job_section_elements:
-        # job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
-        # if len(job_a_elements) > 1:
-        # print(list(job_section_element.find("a", class_="elementor-post__thumbnail__link")))
-        if len(job_section_element.find_all("a", class_="elementor-post__thumbnail__link")) > 1:
+        # Vérifier si une "sous-section" est présente dans la section...
+        job_sous_section_elements = job_section_element.find_all("section", class_="elementor-section")
+        # Vérifier si la "sous-section" est absente et s'il y a un URL...
+        if not job_sous_section_elements and job_section_element.find("a", class_="elementor-post__thumbnail__link"):
             title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
             yield strip_all(title_element.text)
 
@@ -129,17 +129,39 @@ def get_categories(content_bs=None):
         # src = ''
         # reponse = False
 
+
 def get_video_name_from_site(content_bs):
-    return 'À venir'
+    "Extraire le titre de la vidéo"
+    name_element = content_bs.find("h1", class_="entry-title")
+    return strip_all(name_element.text)
+
 
 def get_video_url_from_site(content_bs):
-    return 'URL'
+    "Extraire l'URL de la vidéo"
+    url_element = content_bs.find("iframe")
+    if not url_element:
+        retour = ''
+    else:
+        retour = url_element['src']
+
+    return retour
+
 
 def get_video_genre_from_site(content_bs):
-    return 'Film'
+    "Extraire le genre de la vidéo"
+    genre_before_element = content_bs.find("iframe")
+    genre_before_iframe_element = genre_before_element.parent
+    genre_next_iframe_element = genre_before_iframe_element.findNext('p')
+    if not genre_next_iframe_element:
+        genre_next_iframe_element = genre_before_iframe_element.parent.findNext('p')
+
+    return genre_next_iframe_element.get_text()
 
 def get_video_description_from_site(content_bs):
-    return 'À venir'
+    "Extraire la description de la vidéo..."
+    description_synopsis = content_bs.find('h2', {'id': "synopsis"})
+    description_next_synopsis = description_synopsis.findNext('p')
+    return description_next_synopsis.get_text()
 
 def get_videos_init(category):
     "à enlever"
@@ -179,6 +201,7 @@ def get_videos(category):
                     job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
                     for job_a_element in job_a_elements:
                         image_element  = job_a_element.find("img")
+                        video_group_element = dict()
                         if image_element:
 
                             # On récupère le contenu de la page de la vidéo...
@@ -190,7 +213,6 @@ def get_videos(category):
                             video_genre = get_video_genre_from_site(content_site_video_bs)
                             video_description = get_video_description_from_site(content_site_video_bs)
 
-                            video_group_element = dict()
                             video_group_element['name'] = video_name
                             video_group_element['thumb'] = image_element['src']
                             video_group_element['video'] = video_url
