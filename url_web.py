@@ -163,6 +163,11 @@ def get_video_description_from_site(content_bs):
     description_next_synopsis = description_synopsis.findNext('p')
     return description_next_synopsis.get_text()
 
+def get_video_thumb_from_site(content_bs):
+    "Extraire l'image de la vidéo..."
+    thumb_element = content_bs.find('meta', {'property': "og:image"})
+    return thumb_element['content']
+
 def get_videos_init(category):
     "à enlever"
     return VIDEOS[category]
@@ -185,7 +190,6 @@ def get_videos(category):
     url_content= urllib.request.urlopen(URL_ADRESSE).read()
     liste_soup = BeautifulSoup(url_content, 'html.parser')
 
-    list_videos_group = []
     if category in get_categories(liste_soup):
         job_section_elements = liste_soup.find_all("section", class_="elementor-section")
         for job_section_element in job_section_elements:
@@ -257,8 +261,9 @@ def convert_video_path(path_video):
 
     return return_path
 
-def get_list_search_results(keywordsearch):
+def get_list_search_results_init(keywordsearch):
     """
+    À enlever
     Generate list results
     """
 
@@ -274,3 +279,37 @@ def get_list_search_results(keywordsearch):
                       'genre': 'Food',
                       'description': 'Voici ma description.'})
     return list_results
+
+def get_list_search_results(keywordsearch):
+    """
+    Generate list results
+    """
+    # https://horscine.org/?s=test
+    NOUV_URL_ADRESSE = URL_ADRESSE + '?s=' + keywordsearch
+    url_content= urllib.request.urlopen(NOUV_URL_ADRESSE).read()
+    liste_soup = BeautifulSoup(url_content, 'html.parser')
+
+    article_elements = liste_soup.find_all("article", class_="film")
+
+    for article_element in article_elements:
+
+        video_group_element = dict()
+        job_h2_element = article_element.find("h2", class_="entry-title")
+        href_element  = job_h2_element.find("a", {'rel': "bookmark"})
+
+        # On récupère le contenu de la page de la vidéo...
+        url_content= urllib.request.urlopen(href_element['href']).read()
+        content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
+
+        video_name = get_video_name_from_site(content_site_video_bs)
+        video_thumb = get_video_thumb_from_site(content_site_video_bs)
+        video_url = get_video_url_from_site(content_site_video_bs)
+        video_genre = get_video_genre_from_site(content_site_video_bs)
+        video_description = get_video_description_from_site(content_site_video_bs)
+
+        video_group_element['name'] = video_name
+        video_group_element['thumb'] = video_thumb
+        video_group_element['video'] = video_url
+        video_group_element['genre'] = video_genre
+        video_group_element['description'] = video_description
+        yield video_group_element

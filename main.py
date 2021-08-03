@@ -9,7 +9,7 @@ Example video plugin that is compatible with Kodi 19.x "Matrix" and above
 """
 
 import sys
-from urllib.parse import urlencode, parse_qsl
+# from urllib.parse import urlencode, parse_qsl
 import xbmcgui
 import xbmcplugin
 import routing
@@ -49,16 +49,25 @@ def index():
     # url = plugin.url_for(search, query="hello world")
     xbmcplugin.addDirectoryItem(plugin.handle, url, xbmcgui.ListItem("Recherche"), True)
 
+
     category_number = 0
     for category in categories:
+
+        categories_iter = url_web.get_videos(category)
+        video_item = next(categories_iter)
+
         # Create a list item with a text label and a thumbnail image.
         list_item = xbmcgui.ListItem(label=category)
         # Set graphics (thumbnail, fanart, banner, poster, landscape etc.) for the list item.
         # Here we use the same image for all items for simplicity's sake.
         # In a real-life plugin you need to set each image accordingly.
-        list_item.setArt({'thumb': url_web.VIDEOS[category][0]['thumb'],
-                          'icon': url_web.VIDEOS[category][0]['thumb'],
-                          'fanart': url_web.VIDEOS[category][0]['thumb']})
+        list_item = xbmcgui.ListItem(label=category)
+        # Set graphics (thumbnail, fanart, banner, poster, landscape etc.) for the list item.
+        # Here we use the same image for all items for simplicity's sake.
+        # In a real-life plugin you need to set each image accordingly.
+        list_item.setArt({'thumb': video_item['thumb'],
+                          'icon': video_item['thumb'],
+                          'fanart': video_item['thumb']})
         # Set additional info for the list item.
         # Here we use a category name for both properties for for simplicity's sake.
         # setInfo allows to set various information for an item.
@@ -96,11 +105,10 @@ def get_user_input():
 def search():
     query_result = get_user_input()
 
-    list_results = url_web.get_list_search_results(query_result)
-
     xbmcplugin.setPluginCategory(plugin.handle, 'Résultats de recherche')
     xbmcplugin.setContent(plugin.handle, 'videos')
 
+    list_results = url_web.get_list_search_results(query_result)
 
     for result_item in list_results:
 
@@ -187,13 +195,16 @@ def show_category(category_number):
 @plugin.route('/video_category/<category_number>/<video_number>')
 def route_play_category_video(category_number, video_number):
     # From category_number, extract category_id
-    category_id = list(url_web.get_categories())[int(category_number)]
-    videos = url_web.get_videos(category_id)
+    # category_id = list(url_web.get_categories())[int(category_number)]
+    categories_iter = url_web.get_categories()
+    category_identified = next(x for i,x in enumerate(categories_iter) if i==int(category_number))
+    videos_iter = url_web.get_videos(category_identified)
     # From video_number, extract video_id
-    video_id = videos[int(video_number)]
+    # video_id = videos[int(video_number)]
+    video_identified = next(x for i,x in enumerate(videos_iter) if i==int(video_number))
 
     # Use function convert_video_path to get exact path string.
-    exact_video_path_to_play = url_web.convert_video_path(video_id['video'])
+    exact_video_path_to_play = url_web.convert_video_path(video_identified['video'])
     play_video(exact_video_path_to_play)
 
 @plugin.route('/video')
