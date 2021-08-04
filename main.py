@@ -14,6 +14,7 @@ import xbmcgui
 import xbmcplugin
 import routing
 import xbmc
+import xbmcaddon
 
 import url_web
 
@@ -205,6 +206,18 @@ def route_play_category_video(category_number, video_number):
 
     # Use function convert_video_path to get exact path string.
     exact_video_path_to_play = url_web.convert_video_path(video_identified['video'])
+
+    # If the URL is not changed...
+    if url_web.convert_video_path(video_identified['video']) == video_identified['video']:
+        __addon__ = xbmcaddon.Addon()
+        __addonname__ = __addon__.getAddonInfo('name')
+        __icon__ = __addon__.getAddonInfo('icon')
+        line_notification = "Cette vidéo n'est pas standard.  Il se peut qu'elle ne puisse pas être lue par Kodi."
+        time = 5000 #in miliseconds
+
+        # https://kodi.wiki/view/GUI_tutorial
+        xbmc.executebuiltin('Notification(%s, %s, %d, %s)'%(__addonname__,line_notification, time, __icon__))
+
     play_video(exact_video_path_to_play)
 
 @plugin.route('/video')

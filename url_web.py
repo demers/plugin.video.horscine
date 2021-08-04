@@ -118,17 +118,6 @@ def get_categories(content_bs=None):
             title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
             yield strip_all(title_element.text)
 
-    # for job_element in job_elements:
-        # print(job_element.text)
-        # title_element = job_element.find("h2", class_="elementor-heading-title")
-        # print(title_element)
-    # if liste_soup.find("h2", {"class", "elementor-heading-title elementor-size-default"}) != None:
-        # img = browser.find_element_by_xpath('//h2[@class="cPhoto"]/img')
-        # src = img.get_attribute('src')
-    # else:
-        # src = ''
-        # reponse = False
-
 
 def get_video_name_from_site(content_bs):
     "Extraire le titre de la vidéo"
@@ -245,7 +234,8 @@ def convert_video_path(path_video):
     # Vimeo
     if domain.lower() == 'player.vimeo.com':
 
-        without_extra_slash = os.path.normpath(urlpath)
+        # On enlève les paramètres GET et on enlève le dernier "/"...
+        without_extra_slash = os.path.normpath(urlpath[:urlpath.find('?', 0)])
         last_part = os.path.basename(without_extra_slash)
 
         return_path = 'plugin://plugin.video.vimeo/play/?video_id=' + last_part
@@ -255,6 +245,26 @@ def convert_video_path(path_video):
         id_youtube = urlparse(path_video).query.split('=')[1]
 
         return_path = 'plugin://plugin.video.youtube/play/?video_id=' + id_youtube
+
+    # Archive.org
+    elif domain.lower() == 'archive.org':
+        # On récupère le contenu de la page de la vidéo...
+        url_content= urllib.request.urlopen(path_video).read()
+        content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
+        new_url_video = content_bs.find('meta', {'property': "og:video"})
+        if new_url_video:
+            return_path = new_url_video['content']
+        else:
+            return_path = path_video
+
+    # https://framagit.org/StCyr/plugin.video.peertube
+    # Une instance de Peertube
+    # elif domain.lower() == 'aperi.tube':
+        # without_extra_slash = os.path.normpath(urlpath[:urlpath.find('?', 0)])
+        # last_part = os.path.basename(without_extra_slash)
+
+        # return_path = 'plugin://plugin.video.peertube/?action=play_video&instance=aperi.tube&id=' + last_part
+
     else:
         # No change
         return_path = path_video
