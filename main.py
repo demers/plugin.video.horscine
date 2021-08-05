@@ -212,7 +212,7 @@ def route_play_category_video(category_number, video_number):
         __addon__ = xbmcaddon.Addon()
         __addonname__ = __addon__.getAddonInfo('name')
         __icon__ = __addon__.getAddonInfo('icon')
-        line_notification = "Cette vidéo n'est pas standard.  Il se peut qu'elle ne puisse pas être lue par Kodi."
+        line_notification = "Vidéo non-standard.  Risque d'erreur de lecture..."
         time = 5000 #in miliseconds
 
         # https://kodi.wiki/view/GUI_tutorial

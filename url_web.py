@@ -12,6 +12,8 @@ import os.path
 # Import libraries to analyse Web pages
 from bs4 import BeautifulSoup
 import urllib.request
+
+
 # liste_soup = beautiful(browser.page_source)
 # if liste_soup.find("td", {"class", "cPhoto"}) != None:
     # img = browser.find_element_by_xpath('//td[@class="cPhoto"]/img')
@@ -19,6 +21,8 @@ import urllib.request
 # else:
     # src = ''
     # reponse = False
+
+ADDON_ID = 'plugin.video.horscine'
 
 URL_ADRESSE = 'https://horscine.org/index.php'
 
@@ -122,7 +126,10 @@ def get_categories(content_bs=None):
 def get_video_name_from_site(content_bs):
     "Extraire le titre de la vidéo"
     name_element = content_bs.find("h1", class_="entry-title")
-    return strip_all(name_element.text)
+    if name_element:
+        return strip_all(name_element.text)
+    else:
+        return ''
 
 
 def get_video_url_from_site(content_bs):
@@ -139,23 +146,32 @@ def get_video_url_from_site(content_bs):
 def get_video_genre_from_site(content_bs):
     "Extraire le genre de la vidéo"
     genre_before_element = content_bs.find("iframe")
-    genre_before_iframe_element = genre_before_element.parent
-    genre_next_iframe_element = genre_before_iframe_element.findNext('p')
-    if not genre_next_iframe_element:
-        genre_next_iframe_element = genre_before_iframe_element.parent.findNext('p')
+    if genre_before_element:
+        genre_before_iframe_element = genre_before_element.parent
+        genre_next_iframe_element = genre_before_iframe_element.findNext('p')
+        if not genre_next_iframe_element:
+            genre_next_iframe_element = genre_before_iframe_element.parent.findNext('p')
 
-    return genre_next_iframe_element.get_text()
+        return genre_next_iframe_element.get_text()
+    else:
+        return ''
 
 def get_video_description_from_site(content_bs):
     "Extraire la description de la vidéo..."
     description_synopsis = content_bs.find('h2', {'id': "synopsis"})
-    description_next_synopsis = description_synopsis.findNext('p')
-    return description_next_synopsis.get_text()
+    if description_synopsis:
+        description_next_synopsis = description_synopsis.findNext('p')
+        return description_next_synopsis.get_text()
+    else:
+        return ''
 
 def get_video_thumb_from_site(content_bs):
     "Extraire l'image de la vidéo..."
     thumb_element = content_bs.find('meta', {'property': "og:image"})
-    return thumb_element['content']
+    if thumb_element:
+        return thumb_element['content']
+    else:
+        return ''
 
 def get_videos_init(category):
     "à enlever"
@@ -246,12 +262,21 @@ def convert_video_path(path_video):
 
         return_path = 'plugin://plugin.video.youtube/play/?video_id=' + id_youtube
 
+    # Invidious
+    # https://github.com/lekma/plugin.video.invidious
+    elif domain.lower() == 'invidious.fdn.fr':
+        # On enlève les paramètres GET et on enlève le dernier "/"...
+        without_extra_slash = os.path.normpath(urlpath[:urlpath.find('?', 0)])
+        last_part = os.path.basename(without_extra_slash)
+
+        return_path = 'plugin://plugin.video.invidious/play/?video_id=' + last_part
+
     # Archive.org
     elif domain.lower() == 'archive.org':
         # On récupère le contenu de la page de la vidéo...
         url_content= urllib.request.urlopen(path_video).read()
         content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
-        new_url_video = content_bs.find('meta', {'property': "og:video"})
+        new_url_video = content_site_video_bs.find('meta', {'property': "og:video"})
         if new_url_video:
             return_path = new_url_video['content']
         else:
@@ -290,11 +315,36 @@ def get_list_search_results_init(keywordsearch):
                       'description': 'Voici ma description.'})
     return list_results
 
+def get_addondir():
+    """
+    Get addon dir with standard functions.
+    """
+    # /home/ubuntu/.kodi/userdata/addon_data/plugin.video.horscine/
+
+    try:
+        import xbmc
+        import xbmcaddon
+
+        __addon__ = xbmcaddon.Addon(id=ADDON_ID)
+        __addondir__ = xbmc.translatePath(__addon__.getAddonInfo('profile')) #.decode('utf-8'))
+
+        reponse = __addondir__
+
+    except ImportError:
+        reponse = '/home/ubuntu/.kodi/userdata/addon_data/plugin.video.horscine/'
+
+    return reponse
+
 def get_list_search_results(keywordsearch):
     """
     Generate list results
     """
-    # https://horscine.org/?s=test
+
+    # f = open('myfile', 'w')
+    # f.write(get_addondir())
+    # f.close()
+
+# https://horscine.org/?s=test
     NOUV_URL_ADRESSE = URL_ADRESSE + '?s=' + keywordsearch
     url_content= urllib.request.urlopen(NOUV_URL_ADRESSE).read()
     liste_soup = BeautifulSoup(url_content, 'html.parser')
