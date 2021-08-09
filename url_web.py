@@ -26,64 +26,6 @@ ADDON_ID = 'plugin.video.horscine'
 
 URL_ADRESSE = 'https://horscine.org/index.php'
 
-VIDEOS = {'Le film de la semaine': [{'name': "L'homme de la rue",
-                       'thumb': 'https://horscine.org/wp-content/uploads/Affiche-lhomme-de-la-rue.jpg',
-                       'video': 'https://archive.org/serve/lhomme-de-la-rue/lhomme-de-la-rue-DP.ia.mp4',
-                       'genre': 'Film',
-                        'description': 'Voici ma description.'}
-                      ],
-            'Les autres nouveautés': [{'name': 'La Parade, ou la vie en pull bleu',
-                      'thumb': 'https://horscine.org/wp-content/uploads/la-parade-ou-la-vie-en-pull-bleu.jpg',
-                      'video': 'https://player.vimeo.com/video/45519017?dnt=1&app_id=122963',
-                      'genre': 'Film',
-                        'description': 'Voici ma description.'},
-                     {'name': 'De rien',
-                      'thumb': 'https://horscine.org/wp-content/uploads/de-rien.jpg',
-                      'video': 'https://player.vimeo.com/video/367593464?dnt=1&app_id=122963',
-                      'genre': 'Film',
-                      'description': 'Voici ma description.'},
-                     {'name': 'Artist 110',
-                      'thumb': 'https://horscine.org/wp-content/uploads/ARTIST110.jpg',
-                      'video': 'https://player.vimeo.com/video/202509514?dnt=1&app_id=122963',
-                      'genre': 'Film',
-                      'description': 'Voici ma description.'}
-                     ],
-            'Films au hasard': [{'name': "The cavalier's dream",
-                      'thumb': 'https://horscine.org/wp-content/uploads/the-cavaliers-dream.jpg',
-                      'video': 'https://archive.org/serve/CavaliersDream/Cavalier%27s_Dream.mp4',
-                      'genre': 'Film',
-                      'description': 'Voici ma description.'},
-                     {'name': 'Spring',
-                      'thumb': 'https://horscine.org/wp-content/uploads/2020/11/spring.jpg',
-                      'video': 'https://player.vimeo.com/video/77059630?dnt=1&app_id=122963',
-                      'genre': 'Film',
-                      'description': 'Voici ma description.'},
-                     {'name': 'The balloonatic',
-                      'thumb': 'https://horscine.org/wp-content/uploads/theballoonatic.jpg',
-                      'video': 'https://player.vimeo.com/video/1084537?dnt=1&app_id=122963',
-                      'genre': 'Food',
-                      'description': 'Voici ma description.'}
-                     ]}
-
-
-def get_categories_init():
-    """
-    À enlever...
-    Get the list of video categories.
-
-    Here you can insert some parsing code that retrieves
-    the list of video categories (e.g. 'Movies', 'TV-shows', 'Documentaries' etc.)
-    from some site or API.
-
-    .. note:: Consider using `generator functions <https://wiki.python.org/moin/Generators>`_
-        instead of returning lists.
-
-    :return: The list of video categories
-    :rtype: types.GeneratorType
-    """
-    return VIDEOS.keys()
-
-
 def strip_all(chaine):
     """
     Remove non-visible char beginning and end of string.
@@ -91,6 +33,7 @@ def strip_all(chaine):
     Remove spaces char beginning and end of string.
     """
     return chaine.replace('\t', '').replace('\n', '').replace('\r', '').strip(' ')
+
 
 def get_categories(content_bs=None):
     """
@@ -156,6 +99,7 @@ def get_video_genre_from_site(content_bs):
     else:
         return ''
 
+
 def get_video_description_from_site(content_bs):
     "Extraire la description de la vidéo..."
     description_synopsis = content_bs.find('h2', {'id': "synopsis"})
@@ -165,6 +109,7 @@ def get_video_description_from_site(content_bs):
     else:
         return ''
 
+
 def get_video_thumb_from_site(content_bs):
     "Extraire l'image de la vidéo..."
     thumb_element = content_bs.find('meta', {'property': "og:image"})
@@ -173,9 +118,82 @@ def get_video_thumb_from_site(content_bs):
     else:
         return ''
 
-def get_videos_init(category):
-    "à enlever"
-    return VIDEOS[category]
+def get_all_sections(content_bs=None):
+    "Extraire les sections BeautifulSoup de la page Hors-Cine"
+
+    if not content_bs:
+        url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        liste_soup = BeautifulSoup(url_content, 'html.parser')
+    else:
+        liste_soup = content_bs
+
+    list_categories = get_categories(liste_soup)
+    job_section_elements = liste_soup.find_all("section", class_="elementor-section")
+    for job_section_element in job_section_elements:
+        # Vérifier si un lien URL est présent dans cette section...
+        job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
+        # Vérifier si une "sous-section" est présente dans la section...
+        job_section_souselement = job_section_element.find("section", class_="elementor-section")
+        # Vérifier si une vidéo est présente et s'il n'y a pas de "sous-section"...
+        if job_a_element and not job_section_souselement:
+            title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
+            if title_element and strip_all(title_element.text) in list_categories:
+                yield job_section_element
+    return
+    yield
+
+
+def get_section_category(category, content_bs=None):
+    "Extraire la section BeautifulSoup de la page Hors-Cine de la catégorie en paramètre"
+
+    if not content_bs:
+        url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        liste_soup = BeautifulSoup(url_content, 'html.parser')
+    else:
+        liste_soup = content_bs
+
+    retour_element = None
+    job_section_elements = liste_soup.find_all("section", class_="elementor-section")
+    if category in get_categories(liste_soup):
+        for job_section_element in job_section_elements:
+            # Vérifier si un lien URL est présent dans cette section...
+            job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
+            # Vérifier si une "sous-section" est présente dans la section...
+            job_section_souselement = job_section_element.find("section", class_="elementor-section")
+            # Vérifier si une vidéo est présente et s'il n'y a pas de "sous-section"...
+            if job_a_element and not job_section_souselement:
+                title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
+                if title_element and strip_all(title_element.text) == category:
+                    retour_element = job_section_element
+    return retour_element
+
+def get_url_videos_site(section_element):
+    "Get URL to video sites in the section element"
+
+    if section_element != None:
+        # job_a_elements = section_element.find_all("a", class_="elementor-post__thumbnail__link")
+        job_a_elements = section_element.find_all("a")
+        for job_a_element in job_a_elements:
+            if job_a_element.find('img', {'alt': "image du film"}):
+                yield job_a_element['href']
+
+def get_content_video_site(url):
+    "Get content_bs containing iframe video section"
+
+    url_content = urllib.request.urlopen(url).read()
+    liste_soup = BeautifulSoup(url_content, 'html.parser')
+
+    content_site_element = liste_soup.find("iframe")
+    if content_site_element:
+        yield liste_soup
+    else:
+        for video_site in get_url_videos_site(liste_soup):
+
+            url_content = urllib.request.urlopen(video_site).read()
+            liste_soup2 = BeautifulSoup(url_content, 'html.parser')
+            content_site_element = liste_soup2.find("iframe")
+            if content_site_element:
+                yield liste_soup2
 
 def get_videos(category):
     """
@@ -195,43 +213,86 @@ def get_videos(category):
     url_content= urllib.request.urlopen(URL_ADRESSE).read()
     liste_soup = BeautifulSoup(url_content, 'html.parser')
 
-    if category in get_categories(liste_soup):
-        job_section_elements = liste_soup.find_all("section", class_="elementor-section")
-        for job_section_element in job_section_elements:
-            # Vérifier si un lien URL est présent dans cette section...
-            job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
-            # Vérifier si une "sous-section" est présente dans la section...
-            job_section_souselement = job_section_element.find("section", class_="elementor-section")
-            # Vérifier si une vidéo est présente et s'il n'y a pas de "sous-section"...
-            if job_a_element and not job_section_souselement:
-                title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
-                # Vérifier le titre de la section est bien "category"...
-                if title_element and strip_all(title_element.text) == category:
-                    job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
-                    for job_a_element in job_a_elements:
-                        image_element  = job_a_element.find("img")
-                        video_group_element = dict()
-                        if image_element:
+    # if category in get_categories(liste_soup):
+        # job_section_elements = liste_soup.find_all("section", class_="elementor-section")
+        # for job_section_element in job_section_elements:
+            # # Vérifier si un lien URL est présent dans cette section...
+            # job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
+            # # Vérifier si une "sous-section" est présente dans la section...
+            # job_section_souselement = job_section_element.find("section", class_="elementor-section")
+            # # Vérifier si une vidéo est présente et s'il n'y a pas de "sous-section"...
+            # if job_a_element and not job_section_souselement:
+                # title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
+                # # Vérifier le titre de la section est bien "category"...
+                # if title_element and strip_all(title_element.text) == category:
 
-                            # On récupère le contenu de la page de la vidéo...
-                            url_content= urllib.request.urlopen(job_a_element['href']).read()
-                            content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
+    job_section_element = get_section_category(category, liste_soup)
 
-                            video_name = get_video_name_from_site(content_site_video_bs)
-                            video_url = get_video_url_from_site(content_site_video_bs)
-                            video_genre = get_video_genre_from_site(content_site_video_bs)
-                            video_description = get_video_description_from_site(content_site_video_bs)
+    # if exists_video_section_element(job_section_element):
 
-                            video_group_element['name'] = video_name
-                            video_group_element['thumb'] = image_element['src']
-                            video_group_element['video'] = video_url
-                            video_group_element['genre'] = video_genre
-                            video_group_element['description'] = video_description
-                            yield video_group_element
+    for video_site in get_url_videos_site(job_section_element):
 
-    else:
-        return
-        yield
+        for content_site_element in get_content_video_site(video_site):
+            video_name = get_video_name_from_site(content_site_element)
+            video_url = get_video_url_from_site(content_site_element)
+            video_genre = get_video_genre_from_site(content_site_element)
+            video_description = get_video_description_from_site(content_site_element)
+            video_thumb = get_video_thumb_from_site(content_site_element)
+
+            video_group_element = dict()
+            video_group_element['name'] = video_name
+            video_group_element['thumb'] = video_thumb
+            video_group_element['video'] = video_url
+            video_group_element['genre'] = video_genre
+            video_group_element['description'] = video_description
+            yield video_group_element
+
+        # On récupère le contenu de la page de la vidéo de la section...
+        # url_content= urllib.request.urlopen(video_url).read()
+        # content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
+        # content_site_element = content_site_video_bs.find("iframe")
+
+    # job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
+    # for job_a_element in job_a_elements:
+        # image_element  = job_a_element.find("img")
+        # video_group_element = dict()
+        # if image_element:
+
+            # # On récupère le contenu de la page de la vidéo de la section...
+            # url_content= urllib.request.urlopen(job_a_element['href']).read()
+            # content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
+
+            # list_content_site_videos_bs = dict()
+            # if content_site_video_bs.find("iframe"):
+                # list_content_site_videos_bs.append(content_site_video_bs)
+            # else:
+                # list_content_site_videos_bs = content_site_video_bs.find_all("a", string = "Voir le film")
+                # if list_content_site_videos_bs:
+                    # for href_element in list_content_site_videos_bs:
+                        # print(len(href_element))
+                        # # On récupère le contenu de la sous-page de la vidéo...
+                        # url_content= urllib.request.urlopen(href_element['href']).read()
+                        # content_site_video_2_bs = BeautifulSoup(url_content, 'html.parser')
+                        # if content_site_video_2_bs.find("iframe"):
+                            # list_content_site_videos_bs.append(content_site_video_2_bs)
+
+            # for content_site_element in list_content_site_videos_bs:
+
+                # video_name = get_video_name_from_site(content_site_element)
+                # video_url = get_video_url_from_site(content_site_element)
+                # video_genre = get_video_genre_from_site(content_site_element)
+                # video_description = get_video_description_from_site(content_site_element)
+
+                # video_group_element['name'] = video_name
+                # video_group_element['thumb'] = image_element['src']
+                # video_group_element['video'] = video_url
+                # video_group_element['genre'] = video_genre
+                # video_group_element['description'] = video_description
+                # yield video_group_element
+
+    # else:
+        # return
+        # yield
 
 def convert_video_path(path_video):
     """
@@ -319,7 +380,8 @@ def get_addondir():
     """
     Get addon dir with standard functions.
     """
-    # /home/ubuntu/.kodi/userdata/addon_data/plugin.video.horscine/
+    # Ça devrait donner ce chemin:
+    #   /home/ubuntu/.kodi/userdata/addon_data/plugin.video.horscine/
 
     try:
         import xbmc
