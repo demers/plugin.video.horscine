@@ -131,12 +131,15 @@ def get_all_sections(content_bs=None):
     job_section_elements = liste_soup.find_all("section", class_="elementor-section")
     for job_section_element in job_section_elements:
         # Vérifier si un lien URL est présent dans cette section...
-        job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
+        # job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
+        job_a_element = job_section_element.find("a")
         # Vérifier si une "sous-section" est présente dans la section...
-        job_section_souselement = job_section_element.find("section", class_="elementor-section")
+        # job_section_souselement = job_section_element.find("section", class_="elementor-section")
+        job_section_souselement = job_section_element.find("section")
         # Vérifier si une vidéo est présente et s'il n'y a pas de "sous-section"...
         if job_a_element and not job_section_souselement:
-            title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
+            # title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
+            title_element = job_section_element.find("h2")
             if title_element and strip_all(title_element.text) in list_categories:
                 yield job_section_element
     return
@@ -167,11 +170,32 @@ def get_section_category(category, content_bs=None):
                     retour_element = job_section_element
     return retour_element
 
+def get_href_section(section_element):
+    "Get URL to href element in the section element"
+
+    if section_element != None:
+        job_a_elements = section_element.find_all("a", class_="elementor-post__thumbnail__link")
+        # job_a_elements = section_element.find_all("a")
+        for job_a_element in job_a_elements:
+            if job_a_element.find('img'):
+                yield job_a_element['href']
+
+def exists_video_section_element(section_element):
+    "Check if exists video URL in the section element"
+
+    retour_bool = False
+    if section_element != None:
+        job_a_elements = section_element.find_all("a")
+        for job_a_element in job_a_elements:
+            if job_a_element.find('img', {'alt': "image du film"}):
+                retour_bool = True
+    return retour_bool
+
+
 def get_url_videos_site(section_element):
     "Get URL to video sites in the section element"
 
     if section_element != None:
-        # job_a_elements = section_element.find_all("a", class_="elementor-post__thumbnail__link")
         job_a_elements = section_element.find_all("a")
         for job_a_element in job_a_elements:
             if job_a_element.find('img', {'alt': "image du film"}):
@@ -228,9 +252,17 @@ def get_videos(category):
 
     job_section_element = get_section_category(category, liste_soup)
 
-    # if exists_video_section_element(job_section_element):
+    if not exists_video_section_element(job_section_element):
+        list_url_videos_site = []
+        for url_section in get_href_section(job_section_element):
+            url_content = urllib.request.urlopen(url_section).read()
+            subsection_bs = BeautifulSoup(url_content, 'html.parser')
+            list_videos_subsection = get_url_videos_site(subsection_bs)
+            list_url_videos_site = list_url_videos_site + list(get_url_videos_site(subsection_bs))
+    else:
+        list_url_videos_site = get_url_videos_site(job_section_element)
 
-    for video_site in get_url_videos_site(job_section_element):
+    for video_site in list_url_videos_site:
 
         for content_site_element in get_content_video_site(video_site):
             video_name = get_video_name_from_site(content_site_element)
