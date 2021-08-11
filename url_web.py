@@ -13,6 +13,8 @@ import os.path
 from bs4 import BeautifulSoup
 import urllib.request
 
+import arrow
+import os
 
 # liste_soup = beautiful(browser.page_source)
 # if liste_soup.find("td", {"class", "cPhoto"}) != None:
@@ -237,19 +239,6 @@ def get_videos(category):
     url_content= urllib.request.urlopen(URL_ADRESSE).read()
     liste_soup = BeautifulSoup(url_content, 'html.parser')
 
-    # if category in get_categories(liste_soup):
-        # job_section_elements = liste_soup.find_all("section", class_="elementor-section")
-        # for job_section_element in job_section_elements:
-            # # Vérifier si un lien URL est présent dans cette section...
-            # job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
-            # # Vérifier si une "sous-section" est présente dans la section...
-            # job_section_souselement = job_section_element.find("section", class_="elementor-section")
-            # # Vérifier si une vidéo est présente et s'il n'y a pas de "sous-section"...
-            # if job_a_element and not job_section_souselement:
-                # title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
-                # # Vérifier le titre de la section est bien "category"...
-                # if title_element and strip_all(title_element.text) == category:
-
     job_section_element = get_section_category(category, liste_soup)
 
     if not exists_video_section_element(job_section_element):
@@ -279,52 +268,8 @@ def get_videos(category):
             video_group_element['description'] = video_description
             yield video_group_element
 
-        # On récupère le contenu de la page de la vidéo de la section...
-        # url_content= urllib.request.urlopen(video_url).read()
-        # content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
-        # content_site_element = content_site_video_bs.find("iframe")
-
-    # job_a_elements = job_section_element.find_all("a", class_="elementor-post__thumbnail__link")
-    # for job_a_element in job_a_elements:
-        # image_element  = job_a_element.find("img")
-        # video_group_element = dict()
-        # if image_element:
-
-            # # On récupère le contenu de la page de la vidéo de la section...
-            # url_content= urllib.request.urlopen(job_a_element['href']).read()
-            # content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
-
-            # list_content_site_videos_bs = dict()
-            # if content_site_video_bs.find("iframe"):
-                # list_content_site_videos_bs.append(content_site_video_bs)
-            # else:
-                # list_content_site_videos_bs = content_site_video_bs.find_all("a", string = "Voir le film")
-                # if list_content_site_videos_bs:
-                    # for href_element in list_content_site_videos_bs:
-                        # print(len(href_element))
-                        # # On récupère le contenu de la sous-page de la vidéo...
-                        # url_content= urllib.request.urlopen(href_element['href']).read()
-                        # content_site_video_2_bs = BeautifulSoup(url_content, 'html.parser')
-                        # if content_site_video_2_bs.find("iframe"):
-                            # list_content_site_videos_bs.append(content_site_video_2_bs)
-
-            # for content_site_element in list_content_site_videos_bs:
-
-                # video_name = get_video_name_from_site(content_site_element)
-                # video_url = get_video_url_from_site(content_site_element)
-                # video_genre = get_video_genre_from_site(content_site_element)
-                # video_description = get_video_description_from_site(content_site_element)
-
-                # video_group_element['name'] = video_name
-                # video_group_element['thumb'] = image_element['src']
-                # video_group_element['video'] = video_url
-                # video_group_element['genre'] = video_genre
-                # video_group_element['description'] = video_description
-                # yield video_group_element
-
-    # else:
-        # return
-        # yield
+    # return
+    # yield
 
 def convert_video_path(path_video):
     """
@@ -428,6 +373,22 @@ def get_addondir():
         reponse = '/home/ubuntu/.kodi/userdata/addon_data/plugin.video.horscine/'
 
     return reponse
+
+def check_file_older_than(fichier, jours):
+    """
+    Verify if file is old than a certain number of days.
+    If file does not exist, the answer is true.
+    """
+    retour_bool = False
+    if not os.path.isfile(fichier):
+        retour_bool = True
+    else:
+        criticalTime = arrow.now().shift(hours=+5).shift(days=-jours)
+        # if os.stat(f).st_mtime < now - 7 * 86400:
+        itemTime = arrow.get(os.stat(fichier).st_mtime)
+        if itemTime < criticalTime:
+            retour_bool = True
+    return retour_bool
 
 def get_list_search_results(keywordsearch):
     """

@@ -9,4 +9,5 @@ echo "Execute theses lines:"
 echo "source tests-venv/bin/activate"
 
 echo "pip install beautifulsoup4"
+echo "pip install arrow"
 
