@@ -16,6 +16,8 @@ import urllib.request
 import arrow
 import os
 
+import json
+
 # liste_soup = beautiful(browser.page_source)
 # if liste_soup.find("td", {"class", "cPhoto"}) != None:
     # img = browser.find_element_by_xpath('//td[@class="cPhoto"]/img')
@@ -27,6 +29,13 @@ import os
 ADDON_ID = 'plugin.video.horscine'
 
 URL_ADRESSE = 'https://horscine.org/index.php'
+
+FICHIER_CATEGORIES = 'get_categories.json'
+FICHIER_VIDEOS = 'get_videos.json'
+FICHIER_VIDEOS_DOMAINS = 'list_url_domains.json'
+
+NOMBRE_JOURS_DELAI_CATEGORIES = 7
+NOMBRE_JOURS_DELAI_VIDEOS = 2
 
 def strip_all(chaine):
     """
@@ -52,20 +61,29 @@ def get_categories(content_bs=None):
     :rtype: types.GeneratorType
     """
 
-    if not content_bs:
-        url_content= urllib.request.urlopen(URL_ADRESSE).read()
-        liste_soup = BeautifulSoup(url_content, 'html.parser')
-    else:
-        liste_soup = content_bs
+    chemin_fichier_cat = get_addondir() + FICHIER_CATEGORIES
 
-    job_section_elements = liste_soup.find_all("section", class_="elementor-section")
-    for job_section_element in job_section_elements:
-        # Vérifier si une "sous-section" est présente dans la section...
-        job_sous_section_elements = job_section_element.find_all("section", class_="elementor-section")
-        # Vérifier si la "sous-section" est absente et s'il y a un URL...
-        if not job_sous_section_elements and job_section_element.find("a", class_="elementor-post__thumbnail__link"):
-            title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
-            yield strip_all(title_element.text)
+    if not content_bs and not check_file_older_than(chemin_fichier_cat, NOMBRE_JOURS_DELAI_CATEGORIES):
+        retour_categories = load_dict(chemin_fichier_cat)
+    else:
+        if not content_bs:
+            url_content= urllib.request.urlopen(URL_ADRESSE).read()
+            liste_soup = BeautifulSoup(url_content, 'html.parser')
+        else:
+            liste_soup = content_bs
+
+        retour_categories = []
+        job_section_elements = liste_soup.find_all("section", class_="elementor-section")
+        for job_section_element in job_section_elements:
+            # Vérifier si une "sous-section" est présente dans la section...
+            job_sous_section_elements = job_section_element.find_all("section", class_="elementor-section")
+            # Vérifier si la "sous-section" est absente et s'il y a un URL...
+            if not job_sous_section_elements and job_section_element.find("a", class_="elementor-post__thumbnail__link"):
+                title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
+                # yield strip_all(title_element.text)
+                retour_categories.append(strip_all(title_element.text))
+        save_dict(retour_categories, chemin_fichier_cat)
+    return retour_categories
 
 
 def get_video_name_from_site(content_bs):
@@ -372,6 +390,9 @@ def get_addondir():
     except ImportError:
         reponse = '/home/ubuntu/.kodi/userdata/addon_data/plugin.video.horscine/'
 
+    if not os.path.exists(reponse):
+        os.mkdir(reponse)
+
     return reponse
 
 def check_file_older_than(fichier, jours):
@@ -389,6 +410,38 @@ def check_file_older_than(fichier, jours):
         if itemTime < criticalTime:
             retour_bool = True
     return retour_bool
+
+def save_dict(data_dict, fichier):
+    """
+    Save data structure dict in a file.
+    """
+    retour_reussite = True
+    try:
+        file = open(fichier, 'w')
+    except IOError:
+        retour_reussite = False
+        # file.close()
+        return retour_reussite
+    finally:
+        file.write(json.dumps(data_dict, indent=4))
+        file.close()
+        return retour_reussite
+
+def load_dict(fichier):
+    """
+    Load data structure dict save in a file
+    """
+    struct_dict = dict()
+    try:
+        file = open(fichier, 'r')
+    except IOError:
+        file.close()
+        return struct_dict
+    finally:
+        struct_dict = json.loads(file.read())
+        file.close()
+        return struct_dict
+
 
 def get_list_search_results(keywordsearch):
     """
