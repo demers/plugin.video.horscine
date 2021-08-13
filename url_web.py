@@ -36,7 +36,7 @@ FICHIER_VIDEOS = 'get_videos_'  # On ajoutera sha1 et .json
 FICHIER_VIDEOS_DOMAINS = 'list_url_domains.json'
 
 NOMBRE_JOURS_DELAI_CATEGORIES = 7
-NOMBRE_JOURS_DELAI_VIDEOS = 2
+NOMBRE_JOURS_DELAI_VIDEOS = 1
 
 def strip_all(chaine):
     """
@@ -383,6 +383,20 @@ def convert_video_path(path_video):
                 file.close()
 
     return return_path
+
+
+def is_iterator(obj):
+    "Verify if obj is an iterator type."
+    if (
+            hasattr(obj, '__iter__') and
+            hasattr(obj, '__next__') and      # or __next__ in Python 3
+            callable(obj.__iter__) and
+            obj.__iter__() is obj
+        ):
+        return True
+    else:
+        return False
+
 
 def get_addondir():
     """

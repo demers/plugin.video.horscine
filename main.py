@@ -38,6 +38,7 @@ def play_video(path):
     # Pass the item to the Kodi player.
     xbmcplugin.setResolvedUrl(plugin.handle, True, listitem=play_item)
 
+
 @plugin.route('/')
 def index():
     categories = url_web.get_categories()
@@ -54,8 +55,11 @@ def index():
     category_number = 0
     for category in categories:
 
-        categories_iter = url_web.get_videos(category)
-        video_item = next(categories_iter)
+        videos = url_web.get_videos(category)
+        if url_web.is_iterator(videos):
+            video_item = next(videos)
+        else:
+            video_item = videos[0]
 
         # Create a list item with a text label and a thumbnail image.
         list_item = xbmcgui.ListItem(label=category)
@@ -195,14 +199,21 @@ def show_category(category_number):
 
 @plugin.route('/video_category/<category_number>/<video_number>')
 def route_play_category_video(category_number, video_number):
+    categories = url_web.get_categories()
     # From category_number, extract category_id
-    # category_id = list(url_web.get_categories())[int(category_number)]
-    categories_iter = url_web.get_categories()
-    category_identified = next(x for i,x in enumerate(categories_iter) if i==int(category_number))
-    videos_iter = url_web.get_videos(category_identified)
+    if url_web.is_iterator(categories):
+        category_identified = next(x for i,x in enumerate(categories) if i==int(category_number))
+    else:
+        category_identified = categories[int(category_number)]
+
+
+    videos = url_web.get_videos(category_identified)
     # From video_number, extract video_id
-    # video_id = videos[int(video_number)]
-    video_identified = next(x for i,x in enumerate(videos_iter) if i==int(video_number))
+    if url_web.is_iterator(videos):
+        video_identified = next(x for i,x in enumerate(videos) if i==int(video_number))
+    else:
+        video_identified = videos[int(video_number)]
+
 
     # Use function convert_video_path to get exact path string.
     exact_video_path_to_play = url_web.convert_video_path(video_identified['video'])
