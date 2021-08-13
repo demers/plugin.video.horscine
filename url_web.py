@@ -17,6 +17,7 @@ import arrow
 import os
 
 import json
+import hashlib
 
 # liste_soup = beautiful(browser.page_source)
 # if liste_soup.find("td", {"class", "cPhoto"}) != None:
@@ -31,7 +32,7 @@ ADDON_ID = 'plugin.video.horscine'
 URL_ADRESSE = 'https://horscine.org/index.php'
 
 FICHIER_CATEGORIES = 'get_categories.json'
-FICHIER_VIDEOS = 'get_videos.json'
+FICHIER_VIDEOS = 'get_videos_'  # On ajoutera sha1 et .json
 FICHIER_VIDEOS_DOMAINS = 'list_url_domains.json'
 
 NOMBRE_JOURS_DELAI_CATEGORIES = 7
@@ -63,6 +64,7 @@ def get_categories(content_bs=None):
 
     chemin_fichier_cat = get_addondir() + FICHIER_CATEGORIES
 
+    retour_categories = []
     if not content_bs and not check_file_older_than(chemin_fichier_cat, NOMBRE_JOURS_DELAI_CATEGORIES):
         retour_categories = load_dict(chemin_fichier_cat)
     else:
@@ -72,7 +74,6 @@ def get_categories(content_bs=None):
         else:
             liste_soup = content_bs
 
-        retour_categories = []
         job_section_elements = liste_soup.find_all("section", class_="elementor-section")
         for job_section_element in job_section_elements:
             # Vérifier si une "sous-section" est présente dans la section...
@@ -254,37 +255,50 @@ def get_videos(category):
     :return: the list of videos in the category
     :rtype: list
     """
-    url_content= urllib.request.urlopen(URL_ADRESSE).read()
-    liste_soup = BeautifulSoup(url_content, 'html.parser')
 
-    job_section_element = get_section_category(category, liste_soup)
+    chemin_fichier_videos = get_addondir() + FICHIER_VIDEOS + hashlib.sha1(category.encode('utf-8')).hexdigest() + '.json'
+    retour_videos = []
 
-    if not exists_video_section_element(job_section_element):
-        list_url_videos_site = []
-        for url_section in get_href_section(job_section_element):
-            url_content = urllib.request.urlopen(url_section).read()
-            subsection_bs = BeautifulSoup(url_content, 'html.parser')
-            list_videos_subsection = get_url_videos_site(subsection_bs)
-            list_url_videos_site = list_url_videos_site + list(get_url_videos_site(subsection_bs))
+    if not check_file_older_than(chemin_fichier_videos, NOMBRE_JOURS_DELAI_VIDEOS):
+        retour_videos = load_dict(chemin_fichier_videos)
     else:
-        list_url_videos_site = get_url_videos_site(job_section_element)
 
-    for video_site in list_url_videos_site:
+        url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        liste_soup = BeautifulSoup(url_content, 'html.parser')
 
-        for content_site_element in get_content_video_site(video_site):
-            video_name = get_video_name_from_site(content_site_element)
-            video_url = get_video_url_from_site(content_site_element)
-            video_genre = get_video_genre_from_site(content_site_element)
-            video_description = get_video_description_from_site(content_site_element)
-            video_thumb = get_video_thumb_from_site(content_site_element)
+        job_section_element = get_section_category(category, liste_soup)
 
-            video_group_element = dict()
-            video_group_element['name'] = video_name
-            video_group_element['thumb'] = video_thumb
-            video_group_element['video'] = video_url
-            video_group_element['genre'] = video_genre
-            video_group_element['description'] = video_description
-            yield video_group_element
+        if not exists_video_section_element(job_section_element):
+            list_url_videos_site = []
+            for url_section in get_href_section(job_section_element):
+                url_content = urllib.request.urlopen(url_section).read()
+                subsection_bs = BeautifulSoup(url_content, 'html.parser')
+                list_videos_subsection = get_url_videos_site(subsection_bs)
+                list_url_videos_site = list_url_videos_site + list(get_url_videos_site(subsection_bs))
+        else:
+            list_url_videos_site = get_url_videos_site(job_section_element)
+
+        for video_site in list_url_videos_site:
+
+            for content_site_element in get_content_video_site(video_site):
+                video_name = get_video_name_from_site(content_site_element)
+                video_url = get_video_url_from_site(content_site_element)
+                video_genre = get_video_genre_from_site(content_site_element)
+                video_description = get_video_description_from_site(content_site_element)
+                video_thumb = get_video_thumb_from_site(content_site_element)
+
+                video_group_element = dict()
+                video_group_element['name'] = video_name
+                video_group_element['thumb'] = video_thumb
+                video_group_element['video'] = video_url
+                video_group_element['genre'] = video_genre
+                video_group_element['description'] = video_description
+
+                # yield video_group_element
+                retour_videos.append(video_group_element)
+
+        save_dict(retour_videos, chemin_fichier_videos)
+    return retour_videos
 
     # return
     # yield
@@ -350,26 +364,25 @@ def convert_video_path(path_video):
         # No change
         return_path = path_video
 
+        chemin_fichier_url_domains = get_addondir() + FICHIER_VIDEOS_DOMAINS
+
+        present_in_file = False
+        if os.path.exists(chemin_fichier_url_domains):
+            file = open(chemin_fichier_url_domains, 'r')
+            if path_video in file.read():
+                present_in_file = True
+            file.close()
+
+        if not present_in_file:
+            try:
+                file = open(chemin_fichier_url_domains, 'a')
+            except IOError:
+                file.close()
+            finally:
+                file.write(path_video + "\n")
+                file.close()
+
     return return_path
-
-def get_list_search_results_init(keywordsearch):
-    """
-    À enlever
-    Generate list results
-    """
-
-    list_results = list()
-    list_results.append({'name': 'De rien',
-                      'thumb': 'https://horscine.org/wp-content/uploads/de-rien.jpg',
-                      'video': 'https://player.vimeo.com/video/367593464?dnt=1&app_id=122963',
-                      'genre': 'Film',
-                      'description': 'Voici ma description.'})
-    list_results.append({'name': 'The balloonatic',
-                      'thumb': 'https://horscine.org/wp-content/uploads/theballoonatic.jpg',
-                      'video': 'https://player.vimeo.com/video/1084537?dnt=1&app_id=122963',
-                      'genre': 'Food',
-                      'description': 'Voici ma description.'})
-    return list_results
 
 def get_addondir():
     """
