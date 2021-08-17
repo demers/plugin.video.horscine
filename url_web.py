@@ -6,7 +6,7 @@
 # from some web-site or online service.
 
 # Import librairies to manage urls
-from urllib.parse import urlparse
+import urllib.parse
 import os.path
 
 # Import libraries to analyse Web pages
@@ -310,10 +310,10 @@ def convert_video_path(path_video):
     """
 
     # Extract domain name
-    domain = urlparse(path_video).netloc
+    domain = urllib.parse.urlparse(path_video).netloc
 
     # Extract path from URL
-    urlpath = urlparse(path_video).path
+    urlpath = urllib.parse.urlparse(path_video).path
 
     return_path = ''
 
@@ -321,8 +321,12 @@ def convert_video_path(path_video):
     if domain.lower() == 'player.vimeo.com':
 
         # On enlève les paramètres GET et on enlève le dernier "/"...
-        without_extra_slash = os.path.normpath(urlpath[:urlpath.find('?', 0)])
-        last_part = os.path.basename(without_extra_slash)
+        if urlpath.endswith('/'):
+            urlpath_noslash = urlpath[:-1]
+        else:
+            urlpath_noslash = urlpath
+
+        last_part = os.path.basename(os.path.normpath(urlpath_noslash))
 
         return_path = 'plugin://plugin.video.vimeo/play/?video_id=' + last_part
 
@@ -336,8 +340,11 @@ def convert_video_path(path_video):
     # https://github.com/lekma/plugin.video.invidious
     elif domain.lower() == 'invidious.fdn.fr':
         # On enlève les paramètres GET et on enlève le dernier "/"...
-        without_extra_slash = os.path.normpath(urlpath[:urlpath.find('?', 0)])
-        last_part = os.path.basename(without_extra_slash)
+        if urlpath.endswith('/'):
+            urlpath_noslash = urlpath[:-1]
+        else:
+            urlpath_noslash = urlpath
+        last_part = os.path.basename(os.path.normpath(urlpath_noslash))
 
         return_path = 'plugin://plugin.video.invidious/play/?video_id=' + last_part
 
@@ -355,8 +362,11 @@ def convert_video_path(path_video):
     # https://framagit.org/StCyr/plugin.video.peertube
     # Une instance de Peertube
     # elif domain.lower() == 'aperi.tube':
-        # without_extra_slash = os.path.normpath(urlpath[:urlpath.find('?', 0)])
-        # last_part = os.path.basename(without_extra_slash)
+        # if urlpath.endswith('/'):
+            # urlpath_noslash = urlpath[:-1]
+        # else:
+            # urlpath_noslash = urlpath
+        # last_part = os.path.basename(os.path.normpath(urlpath_noslash))
 
         # return_path = 'plugin://plugin.video.peertube/?action=play_video&instance=aperi.tube&id=' + last_part
 
