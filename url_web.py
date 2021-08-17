@@ -332,7 +332,7 @@ def convert_video_path(path_video):
 
     # Youtube
     elif domain.lower() == 'www.youtube.com':
-        id_youtube = urlparse(path_video).query.split('=')[1]
+        id_youtube = urllib.parse.urlparse(path_video).query.split('=')[1]
 
         return_path = 'plugin://plugin.video.youtube/play/?video_id=' + id_youtube
 
