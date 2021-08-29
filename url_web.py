@@ -35,8 +35,8 @@ FICHIER_CATEGORIES = 'get_categories.json'
 FICHIER_VIDEOS = 'get_videos_'  # On ajoutera sha1 et .json
 FICHIER_VIDEOS_DOMAINS = 'list_url_domains.json'
 
-NOMBRE_JOURS_DELAI_CATEGORIES = 7
-NOMBRE_JOURS_DELAI_VIDEOS = 1
+NOMBRE_JOURS_DELAI_CATEGORIES = 13
+NOMBRE_JOURS_DELAI_VIDEOS = 2
 
 def strip_all(chaine):
     """
