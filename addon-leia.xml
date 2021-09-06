@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.horscine" name="HorsCine" provider-name="fndemers" version="0.1.2">
+<addon id="plugin.video.horscine" name="HorsCine" provider-name="fndemers" version="0.2.0">
 <requires>
   <import addon="xbmc.python" version="2.1.0"/>
   <import addon="script.module.routing" version="0.2.0"/>
@@ -26,7 +26,7 @@
             <icon>icon.png</icon>
             <fanart>fanart.png</fanart>
         </assets>
-        <news>Première version!</news>
+        <news>Fonctionne avec Kodi Matrix et Leia!</news>
         <reuselanguageinvoker>true</reuselanguageinvoker>
     </extension>
 </addon>
