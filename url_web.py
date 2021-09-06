@@ -11,7 +11,8 @@ import sys
 
 # Python 3 versus Python 2
 if ((3, 0) <= sys.version_info <= (3, 9)):
-    import urllib.parse
+    # import urllib.parse
+    from urllib.parse import urlparse
     # import urllib.request
     from urllib.request import urlopen
 elif ((2, 0) <= sys.version_info <= (2, 9)):
