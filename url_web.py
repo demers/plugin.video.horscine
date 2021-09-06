@@ -6,12 +6,23 @@
 # from some web-site or online service.
 
 # Import librairies to manage urls
-import urllib.parse
+
+import sys
+
+# Python 3 versus Python 2
+if ((3, 0) <= sys.version_info <= (3, 9)):
+    import urllib.parse
+    # import urllib.request
+    from urllib.request import urlopen
+elif ((2, 0) <= sys.version_info <= (2, 9)):
+    from urlparse import urlparse
+    from urllib2 import urlopen
+# import urllib.parse
+
 import os.path
 
 # Import libraries to analyse Web pages
 from bs4 import BeautifulSoup
-import urllib.request
 
 import arrow
 import os
@@ -69,7 +80,8 @@ def get_categories(content_bs=None):
         retour_categories = load_dict(chemin_fichier_cat)
     else:
         if not content_bs:
-            url_content= urllib.request.urlopen(URL_ADRESSE).read()
+            # url_content= urllib.request.urlopen(URL_ADRESSE).read()
+            url_content= urlopen(URL_ADRESSE).read()
             liste_soup = BeautifulSoup(url_content, 'html.parser')
         else:
             liste_soup = content_bs
@@ -143,7 +155,8 @@ def get_all_sections(content_bs=None):
     "Extraire les sections BeautifulSoup de la page Hors-Cine"
 
     if not content_bs:
-        url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        # url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        url_content= urlopen(URL_ADRESSE).read()
         liste_soup = BeautifulSoup(url_content, 'html.parser')
     else:
         liste_soup = content_bs
@@ -171,7 +184,8 @@ def get_section_category(category, content_bs=None):
     "Extraire la section BeautifulSoup de la page Hors-Cine de la catégorie en paramètre"
 
     if not content_bs:
-        url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        # url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        url_content= urlopen(URL_ADRESSE).read()
         liste_soup = BeautifulSoup(url_content, 'html.parser')
     else:
         liste_soup = content_bs
@@ -225,7 +239,8 @@ def get_url_videos_site(section_element):
 def get_content_video_site(url):
     "Get content_bs containing iframe video section"
 
-    url_content = urllib.request.urlopen(url).read()
+    # url_content = urllib.request.urlopen(url).read()
+    url_content = urlopen(url).read()
     liste_soup = BeautifulSoup(url_content, 'html.parser')
 
     content_site_element = liste_soup.find("iframe")
@@ -234,7 +249,8 @@ def get_content_video_site(url):
     else:
         for video_site in get_url_videos_site(liste_soup):
 
-            url_content = urllib.request.urlopen(video_site).read()
+            # url_content = urllib.request.urlopen(video_site).read()
+            url_content = urlopen(video_site).read()
             liste_soup2 = BeautifulSoup(url_content, 'html.parser')
             content_site_element = liste_soup2.find("iframe")
             if content_site_element:
@@ -263,7 +279,8 @@ def get_videos(category):
         retour_videos = load_dict(chemin_fichier_videos)
     else:
 
-        url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        # url_content= urllib.request.urlopen(URL_ADRESSE).read()
+        url_content= urlopen(URL_ADRESSE).read()
         liste_soup = BeautifulSoup(url_content, 'html.parser')
 
         job_section_element = get_section_category(category, liste_soup)
@@ -271,7 +288,8 @@ def get_videos(category):
         if not exists_video_section_element(job_section_element):
             list_url_videos_site = []
             for url_section in get_href_section(job_section_element):
-                url_content = urllib.request.urlopen(url_section).read()
+                # url_content = urllib.request.urlopen(url_section).read()
+                url_content = urlopen(url_section).read()
                 subsection_bs = BeautifulSoup(url_content, 'html.parser')
                 list_videos_subsection = get_url_videos_site(subsection_bs)
                 list_url_videos_site = list_url_videos_site + list(get_url_videos_site(subsection_bs))
@@ -310,10 +328,12 @@ def convert_video_path(path_video):
     """
 
     # Extract domain name
-    domain = urllib.parse.urlparse(path_video).netloc
+    # domain = urllib.parse.urlparse(path_video).netloc
+    domain = urlparse(path_video).netloc
 
     # Extract path from URL
-    urlpath = urllib.parse.urlparse(path_video).path
+    # urlpath = urllib.parse.urlparse(path_video).path
+    urlpath = urlparse(path_video).path
 
     return_path = ''
 
@@ -332,7 +352,8 @@ def convert_video_path(path_video):
 
     # Youtube
     elif domain.lower() == 'www.youtube.com':
-        id_youtube = urllib.parse.urlparse(path_video).query.split('=')[1]
+        # id_youtube = urllib.parse.urlparse(path_video).query.split('=')[1]
+        id_youtube = urlparse(path_video).query.split('=')[1]
 
         return_path = 'plugin://plugin.video.youtube/play/?video_id=' + id_youtube
 
@@ -351,7 +372,8 @@ def convert_video_path(path_video):
     # Archive.org
     elif domain.lower() == 'archive.org':
         # On récupère le contenu de la page de la vidéo...
-        url_content= urllib.request.urlopen(path_video).read()
+        # url_content= urllib.request.urlopen(path_video).read()
+        url_content= urlopen(path_video).read()
         content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
         new_url_video = content_site_video_bs.find('meta', {'property': "og:video"})
         if new_url_video:
@@ -491,7 +513,8 @@ def get_list_search_results(keywordsearch):
 
 # https://horscine.org/?s=test
     NOUV_URL_ADRESSE = URL_ADRESSE + '?s=' + keywordsearch
-    url_content= urllib.request.urlopen(NOUV_URL_ADRESSE).read()
+    # url_content= urllib.request.urlopen(NOUV_URL_ADRESSE).read()
+    url_content= urlopen(NOUV_URL_ADRESSE).read()
     liste_soup = BeautifulSoup(url_content, 'html.parser')
 
     article_elements = liste_soup.find_all("article", class_="film")
@@ -503,7 +526,8 @@ def get_list_search_results(keywordsearch):
         href_element  = job_h2_element.find("a", {'rel': "bookmark"})
 
         # On récupère le contenu de la page de la vidéo...
-        url_content= urllib.request.urlopen(href_element['href']).read()
+        # url_content= urllib.request.urlopen(href_element['href']).read()
+        url_content= urlopen(href_element['href']).read()
         content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
 
         video_name = get_video_name_from_site(content_site_video_bs)
