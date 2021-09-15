@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.horscine" name="HorsCine" provider-name="fndemers" version="0.2.0">
+<addon id="plugin.video.horscine" name="HorsCine" provider-name="fndemers" version="0.2.1">
 <requires>
   <import addon="xbmc.python" version="2.1.0"/>
   <import addon="script.module.routing" version="0.2.0"/>
@@ -15,7 +15,7 @@
         <summary lang="fr_CA">Vidéos Hors Ciné.</summary>
         <summary lang="en_GB">Hors Cine Videos.</summary>
         <description lang="fr_CA">Module Kodi plugin pour consulter les vidéos sur Hors Ciné</description>
-        <description lang="en_GB">Kodi plugin to play videos on Hors Cine</description>
+        <description lang="en_GB">Kodi plugin to play videos on Hors Cine (in French)</description>
         <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
         <source>https://github.com/fndemers/plugin.video.horscine</source>
         <website>http://horscine.org</website>

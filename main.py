@@ -2,7 +2,7 @@
 # Module: main
 # Author: Roman V. M. and modified by Francois-N. Demers
 # Created on: 28.11.2014
-# Modified on: 29.06.2021 by adding use of script.module.routing
+# Modified on: 14.09.2021 by adding use of script.module.routing and config
 # License: GPL v.3 https://www.gnu.org/copyleft/gpl.html
 """
 Example video plugin that is compatible with Kodi 19.x "Matrix" and above
@@ -17,6 +17,10 @@ import xbmc
 import xbmcaddon
 
 import url_web
+
+MESSAGE_CHARGEMENT = "Chargement du menu... soyez patient!"
+
+MESSAGE_ERREUR_VIDEO = "Vidéo non-standard.  Risque d'erreur de lecture..."
 
 # Example log: xbmc.log('YOUTUBE')
 
@@ -51,6 +55,13 @@ def index():
     # url = plugin.url_for(search, query="hello world")
     xbmcplugin.addDirectoryItem(plugin.handle, url, xbmcgui.ListItem("Recherche"), True)
 
+    __addon__ = xbmcaddon.Addon()
+    __addonname__ = __addon__.getAddonInfo('name')
+    __icon__ = __addon__.getAddonInfo('icon')
+    line_notification = MESSAGE_CHARGEMENT
+    time = 5000 #in miliseconds
+    # https://kodi.wiki/view/GUI_tutorial
+    xbmc.executebuiltin('Notification(%s, %s, %d, %s)'%(__addonname__,line_notification, time, __icon__))
 
     category_number = 0
     for category in categories:
@@ -223,7 +234,7 @@ def route_play_category_video(category_number, video_number):
         __addon__ = xbmcaddon.Addon()
         __addonname__ = __addon__.getAddonInfo('name')
         __icon__ = __addon__.getAddonInfo('icon')
-        line_notification = "Vidéo non-standard.  Risque d'erreur de lecture..."
+        line_notification = MESSAGE_ERREUR_VIDEO
         time = 5000 #in miliseconds
 
         # https://kodi.wiki/view/GUI_tutorial

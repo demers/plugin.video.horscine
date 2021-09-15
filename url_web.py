@@ -18,7 +18,6 @@ if ((3, 0) <= sys.version_info <= (3, 9)):
 elif ((2, 0) <= sys.version_info <= (2, 9)):
     from urlparse import urlparse
     from urllib2 import urlopen
-# import urllib.parse
 
 import os.path
 
@@ -30,14 +29,6 @@ import os
 
 import json
 import hashlib
-
-# liste_soup = beautiful(browser.page_source)
-# if liste_soup.find("td", {"class", "cPhoto"}) != None:
-    # img = browser.find_element_by_xpath('//td[@class="cPhoto"]/img')
-    # src = img.get_attribute('src')
-# else:
-    # src = ''
-    # reponse = False
 
 ADDON_ID = 'plugin.video.horscine'
 
@@ -166,14 +157,11 @@ def get_all_sections(content_bs=None):
     job_section_elements = liste_soup.find_all("section", class_="elementor-section")
     for job_section_element in job_section_elements:
         # Vérifier si un lien URL est présent dans cette section...
-        # job_a_element = job_section_element.find("a", class_="elementor-post__thumbnail__link")
         job_a_element = job_section_element.find("a")
         # Vérifier si une "sous-section" est présente dans la section...
-        # job_section_souselement = job_section_element.find("section", class_="elementor-section")
         job_section_souselement = job_section_element.find("section")
         # Vérifier si une vidéo est présente et s'il n'y a pas de "sous-section"...
         if job_a_element and not job_section_souselement:
-            # title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
             title_element = job_section_element.find("h2")
             if title_element and strip_all(title_element.text) in list_categories:
                 yield job_section_element
@@ -211,7 +199,6 @@ def get_href_section(section_element):
 
     if section_element != None:
         job_a_elements = section_element.find_all("a", class_="elementor-post__thumbnail__link")
-        # job_a_elements = section_element.find_all("a")
         for job_a_element in job_a_elements:
             if job_a_element.find('img'):
                 yield job_a_element['href']
@@ -319,8 +306,6 @@ def get_videos(category):
         save_dict(retour_videos, chemin_fichier_videos)
     return retour_videos
 
-    # return
-    # yield
 
 def convert_video_path(path_video):
     """
@@ -384,6 +369,7 @@ def convert_video_path(path_video):
 
     # https://framagit.org/StCyr/plugin.video.peertube
     # Une instance de Peertube
+    # Pour l'instant, ça ne fonctionne pas simplement...
     # elif domain.lower() == 'aperi.tube':
         # if urlpath.endswith('/'):
             # urlpath_noslash = urlpath[:-1]
@@ -443,7 +429,7 @@ def get_addondir():
         import xbmcaddon
 
         __addon__ = xbmcaddon.Addon(id=ADDON_ID)
-        __addondir__ = xbmc.translatePath(__addon__.getAddonInfo('profile')) #.decode('utf-8'))
+        __addondir__ = xbmc.translatePath(__addon__.getAddonInfo('profile'))
 
         reponse = __addondir__
 
@@ -480,7 +466,6 @@ def save_dict(data_dict, fichier):
         file = open(fichier, 'w')
     except IOError:
         retour_reussite = False
-        # file.close()
         return retour_reussite
     finally:
         file.write(json.dumps(data_dict, indent=4))
@@ -508,11 +493,7 @@ def get_list_search_results(keywordsearch):
     Generate list results
     """
 
-    # f = open('myfile', 'w')
-    # f.write(get_addondir())
-    # f.close()
-
-# https://horscine.org/?s=test
+    # https://horscine.org/?s=test
     NOUV_URL_ADRESSE = URL_ADRESSE + '?s=' + keywordsearch
     # url_content= urllib.request.urlopen(NOUV_URL_ADRESSE).read()
     url_content= urlopen(NOUV_URL_ADRESSE).read()
