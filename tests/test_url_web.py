@@ -12,13 +12,18 @@ class GetWebTests(unittest.TestCase):
     def test_get_videos_first(self):
         videos_returned = url_web.get_videos(list(url_web.get_categories())[0]) # Le film de la semaine
         videos_expected = [{'name': 'Emmanuel au milieu du désert', 'thumb': 'https://horscine.org/wp-content/uploads/emmanuel-au-milieu-du-desert.jpg', 'video': 'https://player.vimeo.com/video/300929489?dnt=1&app_id=122963&h=04ebfe8f68', 'genre': 'Avertissement : le film est réservé à un public adulte puisqu’il contient des scènes de sexe explicites.', 'description': 'Quand le vernis rose s’écaille à cause de la terre bêchée, comment expérimenter une homosexualité à la fois radicale et rurale ? Comment réinventer sa sexualité au milieu d’un désert ?'}]
-        self.assertCountEqual(videos_expected, videos_returned)
+        self.assertIn('name', videos_returned[0])
+        self.assertIn('thumb', videos_returned[0])
+        self.assertIn('video', videos_returned[0])
+        self.assertIn('genre', videos_returned[0])
+        self.assertIn('description', videos_returned[0])
+        self.assertEqual(5, len(videos_returned[0]))
 
     def test_get_videos_second(self):
         videos_returned = url_web.get_videos(list(url_web.get_categories())[1]) # Les autres nouveautés
         videos_expected = [{'name': 'La Parade, ou la vie en pull bleu', 'thumb': 'https://horscine.org/wp-content/uploads/la-parade-ou-la-vie-en-pull-bleu.jpg', 'video': 'https://player.vimeo.com/video/45519017?dnt=1&app_id=122963', 'genre': 'Film'}, {'name': 'De rien', 'thumb': 'https://horscine.org/wp-content/uploads/de-rien.jpg', 'video': 'https://player.vimeo.com/video/367593464?dnt=1&app_id=122963', 'genre': 'Film'}, {'name': 'Artist 110', 'thumb': 'https://horscine.org/wp-content/uploads/ARTIST110.jpg', 'video': 'https://player.vimeo.com/video/202509514?dnt=1&app_id=122963', 'genre': 'Film'}]
         # self.assertCountEqual(videos_expected, videos_returned)
-        self.assertEqual(9, len(videos_returned))
+        self.assertEqual(10, len(videos_returned))
 
     def test_get_videos_third(self):
         videos_returned = url_web.get_videos(list(url_web.get_categories())[2]) # Films au hasard
@@ -31,13 +36,13 @@ class SearchTests(unittest.TestCase):
 
     def test_list_search_results_movie_keyword(self):
 
-        search_results_returned = url_web.get_list_search_results('facebook')
+        search_results_returned = url_web.get_list_search_results('lampe')
         search_results_expected = list()
-        search_results_expected.append({'name': 'Nothing to hide',
-                                        'thumb': 'https://horscine.org/wp-content/uploads/2020/10/nothingtohide.jpg',
-                                        'video': 'https://player.vimeo.com/video/193515863?dnt=1&app_id=122963',
-                                        'genre': 'De Marc Meillassoux et Mihaela Gladovic – documentaire – 86 min – 2016 – CC BY-NC-ND',
-                                        'description': 'Êtes-vous vraiment sûr de n’avoir “rien à cacher”? Que peuvent savoir Facebook ou Google de vous en seulement 30 jours? Votre orientation sexuelle? Vos heures de lever et de coucher? Votre consommation d’alcool et vos infractions pénales? Votre niveau de richesses et votre solvabilité? Marc Meillassoux et Mihaela Gladovic ont fait l’expérience en hackant l’Iphone et l’IMac d’un jeune artiste n’ayant « rien à cacher » pendant un mois. Un hacker et une analyste ont pour mission de deviner qui est ce jeune homme et s’il n’a véritablement “rien à cacher”. Celui-ci est loin de se douter où l’expérience va le mener…'})
+        search_results_expected.append({'name': 'Danse serpentine par Mme Bob Walter',
+                                        'thumb': 'https://horscine.org/wp-content/uploads/danse-serpentine-par-mme-bob-walter.jpg',
+                                        'video': 'https://archive.org/embed/danse-serpentine-par-mme-bob-walter',
+                                        'genre': 'D’Alice Guy – expérimental – 1 min 34 – 1897 – Domaine public',
+                                        'description': 'Une émule de Loïe Fuller interprète la chorégraphie danse serpentine.'})
 
         self.assertCountEqual(search_results_expected, search_results_returned)
 
