@@ -4,7 +4,7 @@ Ce module vidéo permet de visionner les vidéos qui se trouvent sur le site
 https://horscine.org/
 
 Le module génère d'abord le menu en analysant la structure du site https://horscine.org/
-Le menu peut prendre jusqu'à 1 minute avant de s'afficher.  Le menu est
+Le menu peut prendre jusqu'à 30 secondes avant de s'afficher.  Le menu est
 sauvegardé dans le dossier du module.  La sauvegarde du menu est affiché par la
 suite.  La sauvegarde du menu est actualisée à chaque semaine.
 
@@ -34,11 +34,25 @@ Le module a été développé à l'aide des scripts et modules suivants:
   * script.module.beautifulsoup4
   * plugin.video.vimeo
   * plugin.video.youtube
+  * plugin.video.insidious
+  * plugin.video.peertube
 
-Certaines vidéos vont générer une erreur de lecture en fonction de
-l'hébergement.  Comme par exemple, les vidéos sur Peertube ne fonctionne pas
-pour l'instant.
+Les modules suivants seront installés automatiquement à l'installation du module
+Horscine:
+
+  * script.module.routing
+  * script.module.arrow
+  * script.module.beautifulsoup4
+  * plugin.video.vimeo
+  * plugin.video.youtube
 
 Les vidéos sur Youtube vont fonctionner si le module Youtube a bien été
-configuré sur votre installation Kodi.
-Les vidéos Vimeo et Archive.org vont bien fonctionner.
+configuré sur votre système Kodi.  Les vidéos Vimeo et Archive.org vont
+aussi bien fonctionner.
+
+Les vidéos des sites Peertube devraient fonctionner si le module Peertube est
+bien installé.  Ce module Peertube https://github.com/Coool/plugin.video.peertube
+ne semble pas fonctionner sur Kodi Matrix (19.x) pour l'instant.
+
+Certaines vidéos peuvent générer une erreur de lecture en fonction de
+l'hébergement.
