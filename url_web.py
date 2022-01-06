@@ -68,7 +68,8 @@ def get_categories(content_bs=None):
     chemin_fichier_cat = get_addondir() + FICHIER_CATEGORIES
 
     retour_categories = []
-    if not content_bs and not check_file_older_than(chemin_fichier_cat, NOMBRE_JOURS_DELAI_CATEGORIES):
+    # if not content_bs and not check_file_older_than(chemin_fichier_cat, NOMBRE_JOURS_DELAI_CATEGORIES):
+    if not check_file_older_than(chemin_fichier_cat, NOMBRE_JOURS_DELAI_CATEGORIES):
         retour_categories = load_dict(chemin_fichier_cat)
     else:
         if not content_bs:
@@ -192,6 +193,8 @@ def get_section_category(category, content_bs=None):
                 title_element = job_section_element.find("h2", class_="elementor-heading-title elementor-size-default")
                 if title_element and strip_all(title_element.text) == category:
                     retour_element = job_section_element
+                    # Quand la catégorie est trouvée, il n'est plus nécessaire de rester dans la boucle...
+                    break
     return retour_element
 
 def get_href_section(section_element):
@@ -306,6 +309,26 @@ def get_videos(category):
         save_dict(retour_videos, chemin_fichier_videos)
     return retour_videos
 
+def check_invidious(url_test):
+    "Verify if web site is using Invidious"
+    peertube_url = 'https://' + url_test
+    url_content = urlopen(peertube_url).read()
+    content_site_peertube = BeautifulSoup(url_content, 'html.parser')
+    # site_id_bs = content_site_peertube.find('meta', {'property': "og:site_name"})
+    site_id_bs = content_site_peertube.find('link', {'title': "Invidious"})
+    return site_id_bs
+
+def check_peertube(url_test):
+    "Verify if web site is using Peertube"
+    peertube_url = 'https://' + url_test
+    url_content = urlopen(peertube_url).read()
+    content_site_peertube = BeautifulSoup(url_content, 'html.parser')
+    site_id_bs = content_site_peertube.find('meta', {'property': "og:platform"})
+    site_id = ''
+    if site_id_bs:
+        # Vérifier si c'est un site Peertube
+        site_id = site_id_bs['content'].lower()
+    return site_id.lower() == 'peertube'
 
 def convert_video_path(path_video):
     """
@@ -321,7 +344,8 @@ def convert_video_path(path_video):
     # urlpath = urllib.parse.urlparse(path_video).path
     urlpath = urlparse(path_video).path
 
-    return_path = ''
+    # Pas de changement si on ne détecte pas le type de serveur...
+    return_path = path_video
 
     # Vimeo
     if domain.lower() == 'player.vimeo.com':
@@ -338,22 +362,9 @@ def convert_video_path(path_video):
 
     # Youtube
     elif domain.lower() == 'www.youtube.com':
-        # id_youtube = urllib.parse.urlparse(path_video).query.split('=')[1]
         id_youtube = urlparse(path_video).query.split('=')[1]
 
         return_path = 'plugin://plugin.video.youtube/play/?video_id=' + id_youtube
-
-    # Invidious
-    # https://github.com/lekma/plugin.video.invidious
-    elif domain.lower() == 'invidious.fdn.fr':
-        # On enlève les paramètres GET et on enlève le dernier "/"...
-        if urlpath.endswith('/'):
-            urlpath_noslash = urlpath[:-1]
-        else:
-            urlpath_noslash = urlpath
-        last_part = os.path.basename(os.path.normpath(urlpath_noslash))
-
-        return_path = 'plugin://plugin.video.invidious/play/?video_id=' + last_part
 
     # Archive.org
     elif domain.lower() == 'archive.org':
@@ -367,21 +378,29 @@ def convert_video_path(path_video):
         else:
             return_path = path_video
 
-    # https://framagit.org/StCyr/plugin.video.peertube
-    # Une instance de Peertube
-    # Pour l'instant, ça ne fonctionne pas simplement...
-    # elif domain.lower() == 'aperi.tube':
-        # if urlpath.endswith('/'):
-            # urlpath_noslash = urlpath[:-1]
-        # else:
-            # urlpath_noslash = urlpath
-        # last_part = os.path.basename(os.path.normpath(urlpath_noslash))
+    # Invidious
+    # https://github.com/lekma/plugin.video.invidious
+    elif check_invidious(domain.lower()):
+        # On enlève les paramètres GET et on enlève le dernier "/"...
+        if urlpath.endswith('/'):
+            urlpath_noslash = urlpath[:-1]
+        else:
+            urlpath_noslash = urlpath
+        id_invidious = urlparse(path_video).query.split('=')[1]
 
-        # return_path = 'plugin://plugin.video.peertube/?action=play_video&instance=aperi.tube&id=' + last_part
+        return_path = 'plugin://plugin.video.invidious/play/?video_id=' + id_invidious
+
+    # Peertube
+    elif check_peertube(domain.lower()):
+        if urlpath.endswith('/'):
+            urlpath_noslash = urlpath[:-1]
+        else:
+            urlpath_noslash = urlpath
+        last_part = os.path.basename(os.path.normpath(urlpath_noslash))
+
+        return_path = 'plugin://plugin.video.peertube/?action=play_video&instance=' + domain.lower() + '&id=' + last_part
 
     else:
-        # No change
-        return_path = path_video
 
         chemin_fichier_url_domains = get_addondir() + FICHIER_VIDEOS_DOMAINS
 

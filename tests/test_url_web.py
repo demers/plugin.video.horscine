@@ -64,10 +64,20 @@ class ConvertTests(unittest.TestCase):
 
         self.assertEqual(urlarchive, 'https://archive.org/download/lhomme-de-la-rue/lhomme-de-la-rue-DP.ia.mp4')
 
-    def test_convert_video_path_other(self):
-        urlother = url_web.convert_video_path('https://vidcommons.org/videos/embed/512dfca4-a8d0-4c0c-aeb5-af8682d7e356')
+    def test_convert_video_path_invidious(self):
+        urlarchive = url_web.convert_video_path('https://invidious.fdn.fr/watch?v=8Y-ObRQk5TA')
 
-        self.assertEqual(urlother, 'https://vidcommons.org/videos/embed/512dfca4-a8d0-4c0c-aeb5-af8682d7e356')
+        self.assertEqual(urlarchive, 'plugin://plugin.video.invidious/play/?video_id=8Y-ObRQk5TA')
+
+    def test_convert_video_path_peertube(self):
+        urlarchive = url_web.convert_video_path('https://videos.lemnoslife.com/w/wd7TbkF35EY6DZ34E73Zio')
+
+        self.assertEqual(urlarchive, 'plugin://plugin.video.peertube/?action=play_video&instance=videos.lemnoslife.com&id=wd7TbkF35EY6DZ34E73Zio')
+
+    def test_convert_video_path_other(self):
+        urlother = url_web.convert_video_path('https://gateway.pinata.cloud/ipfs/QmNjJBXWy9rd4ivxWPg8TGwDWv7fni1sQt89TdyEZjP3A4')
+
+        self.assertEqual(urlother, 'https://gateway.pinata.cloud/ipfs/QmNjJBXWy9rd4ivxWPg8TGwDWv7fni1sQt89TdyEZjP3A4')
 
 
 if __name__ == '__main__':
