@@ -453,7 +453,8 @@ def get_addondir():
         reponse = __addondir__
 
     except ImportError:
-        reponse = '/home/ubuntu/.kodi/userdata/addon_data/plugin.video.horscine/'
+        # reponse = '/home/ubuntu/.kodi/userdata/addon_data/plugin.video.horscine/'
+        reponse = '/home/ubuntu/.kodi/userdata/addon_data/' + ADDON_ID + '/'
 
     if not os.path.exists(reponse):
         os.mkdir(reponse)
