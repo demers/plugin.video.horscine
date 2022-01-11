@@ -64,4 +64,4 @@ target/
 
 *.zip
 
-tests-venv/*
+tests-venv/
