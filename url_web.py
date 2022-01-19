@@ -470,7 +470,8 @@ def check_file_older_than(fichier, jours):
     if not os.path.isfile(fichier):
         retour_bool = True
     else:
-        criticalTime = arrow.now().shift(hours=+5).shift(days=-jours)
+        # criticalTime = arrow.now().shift(hours=+5).shift(days=-jours)
+        criticalTime = arrow.utcnow().shift(days=-jours)
         # if os.stat(f).st_mtime < now - 7 * 86400:
         itemTime = arrow.get(os.stat(fichier).st_mtime)
         if itemTime < criticalTime:
