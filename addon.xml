@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.horscine" name="HorsCine" provider-name="fndemers" version="0.3.0">
+<addon id="plugin.video.horscine" name="HorsCine" provider-name="fndemers" version="0.3.1">
 <requires>
   <import addon="script.module.routing" version="0.2.3"/>
-  <import addon="script.module.arrow" version="0.15.5"/>
+  <!--<import addon="script.module.arrow" version="0.15.5"/>-->
   <import addon="script.module.beautifulsoup4" version="4.6.2"/>
   <import addon="plugin.video.vimeo" version="5.1.4"/>
   <import addon="plugin.video.youtube" version="5.3.10"/>

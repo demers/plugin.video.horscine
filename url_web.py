@@ -24,11 +24,13 @@ import os.path
 # Import libraries to analyse Web pages
 from bs4 import BeautifulSoup
 
-import arrow
+# import arrow
 import os
 
 import json
 import hashlib
+
+import datetime
 
 ADDON_ID = 'plugin.video.horscine'
 
@@ -461,37 +463,93 @@ def get_addondir():
 
     return reponse
 
-def check_file_older_than(fichier, jours):
+def check_file_older_than(fichier, jours_max, hasard_actif=False):
     """
-    Verify if file is old than a certain number of days.
+    Verify if file is old than a certain number of days jours_max.
     If file does not exist, the answer is true.
+    If hasard_actif, le number of days is between 1 and jours_max
     """
+
+    fichier_date = fichier + '.date'
+
+    if hasard_actif:
+        jours = get_random_day(jours_max)
+    else:
+        jours = jours_max
+
     retour_bool = False
-    if not os.path.isfile(fichier):
+    if not (os.path.isfile(fichier) and os.path.isfile(fichier_date)):
         retour_bool = True
     else:
-        # criticalTime = arrow.now().shift(hours=+5).shift(days=-jours)
-        criticalTime = arrow.utcnow().shift(days=-jours)
-        # if os.stat(f).st_mtime < now - 7 * 86400:
-        itemTime = arrow.get(os.stat(fichier).st_mtime)
-        if itemTime < criticalTime:
-            retour_bool = True
+        criticalTime = datetime.datetime.today() - datetime.timedelta(days=jours)
+        try:
+            file_date = open(fichier_date, 'r')
+        except IOError:
+            return retour_bool
+
+        finally:
+            content_time = strip_all(file_date.read())
+            try:
+                itemTime = datetime.datetime.strptime(content_time, "%Y-%m-%d")
+            except TypeError:
+                import time
+                itemTime = datetime.datetime.fromtimestamp(time.mktime(time.strptime(content_time, "%Y-%m-%d")))
+
+            if itemTime < criticalTime:
+                retour_bool = True
+            file_date.close()
     return retour_bool
 
 def save_dict(data_dict, fichier):
     """
     Save data structure dict in a file.
     """
+    fichier_date = fichier + '.date'
     retour_reussite = True
     try:
         file = open(fichier, 'w')
+        file_date = open(fichier_date, 'w')
     except IOError:
         retour_reussite = False
         return retour_reussite
     finally:
         file.write(json.dumps(data_dict, indent=4))
+        file_date.write(datetime.datetime.now().strftime("%Y-%m-%d"))
         file.close()
+        file_date.close()
         return retour_reussite
+
+# def check_file_older_than(fichier, jours):
+    # """
+    # Verify if file is old than a certain number of days.
+    # If file does not exist, the answer is true.
+    # """
+    # retour_bool = False
+    # if not os.path.isfile(fichier):
+        # retour_bool = True
+    # else:
+        # # criticalTime = arrow.now().shift(hours=+5).shift(days=-jours)
+        # criticalTime = arrow.utcnow().shift(days=-jours)
+        # # if os.stat(f).st_mtime < now - 7 * 86400:
+        # itemTime = arrow.get(os.stat(fichier).st_mtime)
+        # if itemTime < criticalTime:
+            # retour_bool = True
+    # return retour_bool
+
+# def save_dict(data_dict, fichier):
+    # """
+    # Save data structure dict in a file.
+    # """
+    # retour_reussite = True
+    # try:
+        # file = open(fichier, 'w')
+    # except IOError:
+        # retour_reussite = False
+        # return retour_reussite
+    # finally:
+        # file.write(json.dumps(data_dict, indent=4))
+        # file.close()
+        # return retour_reussite
 
 def load_dict(fichier):
     """
