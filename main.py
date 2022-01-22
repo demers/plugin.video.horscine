@@ -70,7 +70,10 @@ def index():
         if url_web.is_iterator(videos):
             video_item = next(videos)
         else:
-            video_item = videos[0]
+            if videos:
+                video_item = videos[0]
+            else:
+                continue
 
         # Create a list item with a text label and a thumbnail image.
         list_item = xbmcgui.ListItem(label=category)
