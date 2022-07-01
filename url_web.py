@@ -19,6 +19,7 @@ import sys
     # from urlparse import urlparse
     # from urllib2 import urlopen
 
+from urllib.parse import urlparse
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -84,6 +85,24 @@ def read_url(url_text):
         # retour_categories_url.append((RSS_TEXTE, url_rss))
     # return retour_categories_url
 
+# def verify_url_prefixe(chaine_url, prefixe_url):
+def verify_url(chaine_url, prefixe_url):
+    "Ajouter domaine http au début si non présent et modifier &"
+
+    chaine_url_and = chaine_url.replace('&#038;', '&')
+    chaine_url_and_return = chaine_url_and
+
+    if chaine_url_and[0:4] != 'http':
+        chaine_url_and_return = prefixe_url + chaine_url_and
+
+    return chaine_url_and_return
+
+def get_video_content(chaine_url):
+    # Chargement de la page des vidéos...
+    url_content = read_url(chaine_url)
+
+    return BeautifulSoup(url_content, 'html.parser')
+
 def get_categories(content_bs=None):
 
     # Variable disponible tout au long de l'exécution du script
@@ -138,15 +157,13 @@ def get_categories(content_bs=None):
         # save_dict(retour_categories, chemin_fichier_cat)
     # return retour_categories
 
-
 def get_video_name_from_site(content_bs):
     "Extraire le titre de la vidéo"
-    name_element = content_bs.find("h1", class_="entry-title")
+    name_element = content_bs.find("h1", class_="elementor-heading-title")
     if name_element:
         return strip_all(name_element.text)
     else:
         return ''
-
 
 def get_video_url_from_site(content_bs):
     "Extraire l'URL de la vidéo"
@@ -161,18 +178,13 @@ def get_video_url_from_site(content_bs):
 
 def get_video_genre_from_site(content_bs):
     "Extraire le genre de la vidéo"
-    genre_before_element = content_bs.find("iframe")
-    if genre_before_element:
-        genre_before_iframe_element = genre_before_element.parent
-        genre_next_iframe_element = genre_before_iframe_element.findNext('p')
-        if not genre_next_iframe_element:
-            genre_next_iframe_element = genre_before_iframe_element.parent.findNext('p')
-
-        return genre_next_iframe_element.get_text()
+    meta_element = content_bs.find("div", class_="film__meta")
+    if meta_element:
+        return strip_all(meta_element.get_text())
     else:
         return ''
 
-
+# ACORRIGER
 def get_video_description_from_site(content_bs):
     "Extraire la description de la vidéo..."
     description_synopsis = content_bs.find('h2', {'id': "synopsis"})
@@ -294,6 +306,25 @@ def get_content_video_site(url):
             if content_site_element:
                 yield liste_soup2
 
+def append_video(video_element, liste_videos):
+    "Ajoute une vidéo dans le dictionnaire sans répétition seulement"
+
+    test_ajout = True
+
+    # Si le champ est vide, on n'ajoute pas...
+    if not video_element['video']:
+        test_ajout = False
+
+    if test_ajout:
+        # On vérifie l'URL est la même...
+        for element in liste_videos:
+            if element['video'] == video_element['video']:
+                test_ajout = False
+
+    if test_ajout:
+        liste_videos.append(video_element)
+
+
 def get_videos(category):
     """
     Get the list of videofiles/streams.
@@ -335,7 +366,7 @@ def get_videos(category):
             guid_soup = article.find('guid')
             if guid_soup:
                 article_link = strip_all(guid_soup.text)
-                url_content = read_url(verify_url_prefixe(article_link, URL_PREFIXE))
+                url_content = read_url(verify_url(article_link, URL_PREFIXE))
                 if url_content:
                     liste_soup_video = BeautifulSoup(url_content, 'html.parser')
                     video_group_element['name'] = get_video_name_from_site(liste_soup_video)
@@ -641,7 +672,8 @@ def get_list_search_results(keywordsearch):
 
         # On récupère le contenu de la page de la vidéo...
         # url_content= urllib.request.urlopen(href_element['href']).read()
-        url_content= urlopen(href_element['href']).read()
+        # url_content= urlopen(href_element['href']).read()
+        url_content= read_url(href_element['href'])
         content_site_video_bs = BeautifulSoup(url_content, 'html.parser')
 
         video_name = get_video_name_from_site(content_site_video_bs)
