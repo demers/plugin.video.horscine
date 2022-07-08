@@ -43,6 +43,7 @@ URL_PREFIXE = 'https://horscine.org'
 URL_ADRESSE_PRINCIPALE = URL_PREFIXE + '/index.php'
 URL_ADRESSE = URL_ADRESSE_PRINCIPALE
 
+# Adresse RSS qui peut changer avec le temps...
 URL_ADRESSE_RSS = 'https://horscine.org/film/feed/rss2/'
 
 ADDON_ID = 'plugin.video.horscine'
@@ -111,9 +112,13 @@ def get_categories(content_bs=None):
     retour_categories_url = []
 
     # CATEGORIES_WITH_URL = retour_categories_url
-    CATEGORIES_WITH_URL = (RSS_TEXTE, URL_ADRESSE_RSS)
+    retour_categories_url.append((RSS_TEXTE, URL_ADRESSE_RSS))
+
+    CATEGORIES_WITH_URL = retour_categories_url
+
     # return [category_tuple[0] for category_tuple in retour_categories_url]
-    return RSS_TEXTE
+    return [category_tuple[0] for category_tuple in retour_categories_url]
+    # return list(RSS_TEXTE)
 
 # def get_categories(content_bs=None):
     # """
@@ -184,13 +189,16 @@ def get_video_genre_from_site(content_bs):
     else:
         return ''
 
-# ACORRIGER
 def get_video_description_from_site(content_bs):
     "Extraire la description de la vidéo..."
-    description_synopsis = content_bs.find('h2', {'id': "synopsis"})
-    if description_synopsis:
-        description_next_synopsis = description_synopsis.findNext('p')
-        return description_next_synopsis.get_text()
+    h3_contents = content_bs.findAll('h3')
+    h3_content = None
+    for h3_content in h3_contents:
+        if h3_content.text.find('Synopsis') > -1:
+            break
+    description_next_synopsis = h3_content.findNext('div', class_="elementor-text-editor elementor-clearfix")
+    if description_next_synopsis:
+        return strip_all(description_next_synopsis.get_text())
     else:
         return ''
 
@@ -277,34 +285,34 @@ def get_video_thumb_from_site(content_bs):
     # return retour_bool
 
 
-def get_url_videos_site(section_element):
-    "Get URL to video sites in the section element"
+# def get_url_videos_site(section_element):
+    # "Get URL to video sites in the section element"
 
-    if section_element != None:
-        job_a_elements = section_element.find_all("a")
-        for job_a_element in job_a_elements:
-            if job_a_element.find('img', {'alt': "image du film"}):
-                yield job_a_element['href']
+    # if section_element != None:
+        # job_a_elements = section_element.find_all("a")
+        # for job_a_element in job_a_elements:
+            # if job_a_element.find('img', {'alt': "image du film"}):
+                # yield job_a_element['href']
 
-def get_content_video_site(url):
-    "Get content_bs containing iframe video section"
+# def get_content_video_site(url):
+    # "Get content_bs containing iframe video section"
 
-    # url_content = urllib.request.urlopen(url).read()
-    url_content = urlopen(url).read()
-    liste_soup = BeautifulSoup(url_content, 'html.parser')
+    # # url_content = urllib.request.urlopen(url).read()
+    # url_content = urlopen(url).read()
+    # liste_soup = BeautifulSoup(url_content, 'html.parser')
 
-    content_site_element = liste_soup.find("iframe")
-    if content_site_element:
-        yield liste_soup
-    else:
-        for video_site in get_url_videos_site(liste_soup):
+    # content_site_element = liste_soup.find("iframe")
+    # if content_site_element:
+        # yield liste_soup
+    # else:
+        # for video_site in get_url_videos_site(liste_soup):
 
-            # url_content = urllib.request.urlopen(video_site).read()
-            url_content = urlopen(video_site).read()
-            liste_soup2 = BeautifulSoup(url_content, 'html.parser')
-            content_site_element = liste_soup2.find("iframe")
-            if content_site_element:
-                yield liste_soup2
+            # # url_content = urllib.request.urlopen(video_site).read()
+            # url_content = urlopen(video_site).read()
+            # liste_soup2 = BeautifulSoup(url_content, 'html.parser')
+            # content_site_element = liste_soup2.find("iframe")
+            # if content_site_element:
+                # yield liste_soup2
 
 def append_video(video_element, liste_videos):
     "Ajoute une vidéo dans le dictionnaire sans répétition seulement"
@@ -358,6 +366,7 @@ def get_videos(category):
         url_content = read_url(url_category)
 
         liste_soup_category = BeautifulSoup(url_content, 'html5lib')
+        # liste_soup_category = BeautifulSoup(url_content, 'lxml')
 
         articles_soupe = liste_soup_category.findAll('item')
         for article in articles_soupe:
