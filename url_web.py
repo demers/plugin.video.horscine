@@ -365,7 +365,8 @@ def get_videos(category):
         # Chargement de la page des vidéos...
         url_content = read_url(url_category)
 
-        liste_soup_category = BeautifulSoup(url_content, 'html5lib')
+        # liste_soup_category = BeautifulSoup(url_content, 'html5lib')
+        liste_soup_category = BeautifulSoup(url_content)
         # liste_soup_category = BeautifulSoup(url_content, 'lxml')
 
         articles_soupe = liste_soup_category.findAll('item')
